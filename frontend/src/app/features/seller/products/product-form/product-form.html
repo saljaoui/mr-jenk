@@ -1,0 +1,230 @@
+<div class="seller-shell">
+  <app-seller-sidebar
+    activeItem="create-product"
+    [initials]="sellerInitials()"
+    [name]="currentUser?.name || 'Seller'"
+    [subtitle]="currentUser?.email || 'Seller account'"
+  ></app-seller-sidebar>
+
+  <div class="seller-main">
+    <header class="seller-topbar">
+      <div class="seller-topbar-copy">
+        <strong>Create / edit product</strong>
+        <span>{{ mode === 'edit' ? 'Editing existing backend product' : 'Creating a backend product listing' }}</span>
+      </div>
+
+      <div class="seller-topbar-actions">
+        <a class="ghost-btn" routerLink="/products">
+          <app-icon name="eye" [size]="16"></app-icon>
+          Preview
+        </a>
+        <a class="secondary-btn" routerLink="/seller">
+          <app-icon name="x" [size]="16"></app-icon>
+          Cancel
+        </a>
+        <button class="primary-btn" type="button" (click)="saveProduct()" [disabled]="isSaving() || isLoading()">
+          <app-icon [name]="isSaving() ? 'spinner' : 'check'" [class.spin]="isSaving()" [size]="16"></app-icon>
+          {{ isSaving() ? 'Saving...' : 'Save product' }}
+        </button>
+      </div>
+    </header>
+
+    <main class="seller-body">
+      <section class="seller-banner">
+        <div class="seller-banner-copy">
+          <div class="eyebrow"><span></span> Product editor</div>
+          <h1>Build a polished <em>listing</em> quickly.</h1>
+          <p>
+            This form keeps the same soft cards, dark accents, and structured spacing used across
+            the rest of the app while publishing directly to the backend.
+          </p>
+        </div>
+      </section>
+
+      @if (isLoading()) {
+      <section class="panel">
+        <div class="panel-body">
+          <app-icon class="spin" name="spinner" [size]="24"></app-icon>
+          <strong>Loading product...</strong>
+        </div>
+      </section>
+      }
+
+      @if (formErrors().length > 0) {
+      <section class="panel form-error-panel">
+        <div class="panel-body">
+          @for (error of formErrors(); track error) {
+          <div><app-icon name="alert" [size]="16"></app-icon>{{ error }}</div>
+          }
+        </div>
+      </section>
+      }
+
+      <div class="form-layout">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Product information</h3>
+              <p>Core details buyers will see in the storefront.</p>
+            </div>
+            <span class="pill">Backend</span>
+          </div>
+
+          <div class="panel-body form-stack">
+            <section class="form-section">
+              <div class="section-intro">
+                <h3>Core details</h3>
+                <p>Clear titles and descriptions help the product cards feel premium and consistent.</p>
+              </div>
+
+              <div class="field-grid">
+                <div class="field full" [class.invalid]="formSubmitted() && productInfo.name.trim().length < 2">
+                  <label for="title">Product title</label>
+                  <input id="title" type="text" placeholder="Noise-Cancelling Pro Headphones" name="name"
+                    [(ngModel)]="productInfo.name" [class.is-invalid]="formSubmitted() && productInfo.name.trim().length < 2" />
+                  <div class="message">Title is required before publishing.</div>
+                </div>
+
+                <div class="field full">
+                  <label for="shortDescription">description</label>
+                  <textarea id="shortDescription"
+                    placeholder="Write a concise summary that will appear in cards and previews."
+                    name="description"
+                    [(ngModel)]="productInfo.description"></textarea>
+                  <div class="helper">Keep it focused on materials, benefits, and visual style.</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <div class="section-intro">
+                <h3>Pricing and inventory</h3>
+                <p>Price and stock fields are validated before publishing to the product service.</p>
+              </div>
+
+              <div class="field-grid">
+                <div class="field" [class.invalid]="formSubmitted() && productInfo.price <= 0">
+                  <label for="price">Price</label>
+                  <input id="price" type="number" min="0" step="0.01" placeholder="149.00" name="price" [(ngModel)]="productInfo.price" />
+                  <div class="message">Enter a valid sale price.</div>
+                </div>
+
+                <div class="field">
+                  <label for="stock">Stock quantity</label>
+                  <input id="stock" type="number" placeholder="12" name="quantity" [(ngModel)]="productInfo.quantity" />
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <div class="section-intro">
+                <h3>Media gallery</h3>
+                <p>Dropzone and file cards stay visually aligned with the dashboard and media library.</p>
+              </div>
+
+              <div class="upload-dropzone media-dropzone">
+                <div class="drop-icon"><app-icon name="upload-cloud" [size]="30"></app-icon></div>
+                <strong>Upload product imagery</strong>
+                <span>Drag and drop hero shots, detail crops, or packaging images here.</span>
+
+                <div class="drop-actions">
+                  <input #imageInput type="file" id="imageInput" accept="image/*" multiple
+                    (change)="onFilesSelected($event)" style="display: none;">
+
+                  <button class="primary-btn" type="button" (click)="imageInput.click()">
+                    <app-icon name="upload-cloud" [size]="16"></app-icon>
+                    Choose images
+                  </button>
+
+                  <a class="ghost-btn" routerLink="/seller/media">
+                    <app-icon name="media" [size]="16"></app-icon>
+                    Open library
+                  </a>
+                </div>
+
+                <small>Allowed: JPG, PNG, WEBP, AVIF up to 2 MB each.</small>
+              </div>
+
+              <div class="upload-preview-grid">
+
+
+                @for(item of selectedImages; track item.preview) {
+                <article  class="upload-card">
+                  <div class="preview-art">
+                    <img [src]="item.preview" [alt]="item.file.name">
+                  </div>
+                  <strong>{{ item.file.name }}</strong>
+                  <span>{{ (item.file.size / 1024 / 1024).toFixed(2) }} MB</span>
+                  <button type="button" (click)="deleteImage(item)">
+                    <app-icon name="trash" [size]="15"></app-icon>
+                    Delete
+                  </button>
+                </article>
+                }
+
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <aside class="form-side">
+          <div class="sticky-side">
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>Publish summary</h3>
+                  <p>Quick review before saving</p>
+                </div>
+              </div>
+
+              <div class="panel-body summary-stack">
+                <div class="summary-row">
+                  <span>Visibility</span>
+                  <strong>Backend listing</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Sales channel</span>
+                  <strong>Web storefront</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Images attached</span>
+                  <strong>{{ selectedImages.length }} / {{ maxImages }}</strong>
+                </div>
+                @if (formErrors().length > 0) {
+                <div class="summary-alert">
+                  <app-icon name="alert" [size]="16"></app-icon>
+                  {{ formErrors()[0] }}
+                </div>
+                }
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>Checklist</h3>
+                  <p>Typical seller workflow</p>
+                </div>
+              </div>
+
+              <div class="panel-body note-list">
+                <div class="note-item">
+                  <app-icon name="circle" [size]="16"></app-icon>
+                  Add a valid price
+                </div>
+                <div class="note-item">
+                  <app-icon name="circle" [size]="16"></app-icon>
+                  Upload product images
+                </div>
+                <div class="note-item">
+                  <app-icon name="circle" [size]="16"></app-icon>
+                  Review final storefront preview
+                </div>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>

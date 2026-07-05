@@ -1,0 +1,73 @@
+@use './styles/public-shell' as *;
+@use './styles/seller-shell' as *;
+
+/* =========================
+   Global Design Variables
+========================= */
+
+:root {
+  --cream: #f5f0e8;
+  --ink: #1a1a18;
+  --gold: #c8a96e;
+  --gold-lt: #e8d5b0;
+  --muted: #7a7a6e;
+  --card-bg: #ffffff;
+
+  /* status */
+  --error: #c0392b;
+  --success: #27ae60;
+  --warning: #f39c12;
+  --info: #3498db;
+
+  /* UI helpers */
+  --border: #e5e0d6;
+  --hover: #f0e9dd;
+  --shadow: rgba(0,0,0,0.08);
+
+  /* text variations */
+  --text-muted: #8c8c80;
+  --text-light: #b5b5a8;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--cream);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* =========================
+   Scrollbar Styling
+========================= */
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-lt);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) var(--cream);
+}

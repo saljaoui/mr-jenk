@@ -1,0 +1,250 @@
+<div class="seller-shell">
+  <app-seller-sidebar
+    activeItem="dashboard"
+    [productCount]="totalProducts()"
+    [initials]="userInitials()"
+    [name]="user()?.name || 'Seller'"
+    [subtitle]="user()?.email || 'Seller account'"
+  ></app-seller-sidebar>
+
+  <div class="seller-main">
+    <header class="seller-topbar">
+      <div class="seller-topbar-copy">
+        <strong class="dashboard-title">
+          <app-icon name="store" [size]="20"></app-icon>
+          Seller dashboard
+        </strong>
+        <span>{{ currentDate }}</span>
+      </div>
+
+      <div class="seller-topbar-actions">
+        <a class="primary-btn" routerLink="/seller/products/new">
+          <app-icon name="plus" [size]="16"></app-icon>
+          New product
+        </a>
+      </div>
+    </header>
+
+    <main class="seller-body">
+      <section class="seller-banner">
+        <div class="seller-banner-copy">
+          <div class="eyebrow"><span></span> Seller overview</div>
+          <h1>Manage your <em>catalog</em> with clarity.</h1>
+          <p>
+            Review active listings, image coverage, and current priorities without leaving the same
+            seller workspace.
+          </p>
+        </div>
+
+        <div class="seller-banner-visual" aria-hidden="true">
+          <div class="banner-illustration-card primary">
+            <app-icon name="chart" [size]="26"></app-icon>
+            <span>Live overview</span>
+          </div>
+          <div class="banner-illustration-card secondary">
+            <app-icon name="package" [size]="22"></app-icon>
+            <app-icon name="media" [size]="22"></app-icon>
+            <app-icon name="sparkles" [size]="20"></app-icon>
+          </div>
+        </div>
+      </section>
+
+      @if (isLoading()) {
+      <section class="panel dashboard-state">
+        <div class="panel-body">
+          <app-icon class="spin" name="spinner" [size]="24"></app-icon>
+          <strong>Loading dashboard...</strong>
+        </div>
+      </section>
+      } @else if (errorMessage()) {
+      <section class="panel dashboard-error">
+        <div class="panel-body">
+          <app-icon name="alert" [size]="24" [decorative]="false" ariaLabel="Dashboard error"></app-icon>
+          <strong>Dashboard could not load</strong>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      </section>
+      } @else {
+      <div class="stats-grid">
+        <article class="metric-card">
+          <div class="metric-top">
+            <div class="metric-icon gold"><app-icon name="package" [size]="20"></app-icon></div>
+            <div class="metric-trend up"><app-icon name="chart" [size]="14"></app-icon> Real catalog</div>
+          </div>
+          <div class="metric-value">{{ totalProducts() }}</div>
+          <div class="metric-label">Total products</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-top">
+            <div class="metric-icon green"><app-icon name="circle-check" [size]="20"></app-icon></div>
+            <div class="metric-trend up"><app-icon name="sparkles" [size]="14"></app-icon> {{ activeListings() }} live</div>
+          </div>
+          <div class="metric-value">{{ activeListings() }}</div>
+          <div class="metric-label">Active listings</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-top">
+            <div class="metric-icon red"><app-icon name="media" [size]="20"></app-icon></div>
+            <div class="metric-trend down"><app-icon name="alert" [size]="14"></app-icon> {{ draftTasks() }} needs work</div>
+          </div>
+          <div class="metric-value">{{ mediaTotal() }}</div>
+          <div class="metric-label">Uploaded media files</div>
+        </article>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Recent products</h3>
+              <p>Latest listings fetched from the product service</p>
+            </div>
+            <a class="ghost-btn" routerLink="/products">
+              View storefront
+              <app-icon name="arrow-right" [size]="15"></app-icon>
+            </a>
+          </div>
+
+          @if (recentProducts().length === 0) {
+          <div class="panel-body empty-products-state">
+            <div class="empty-products-illustration">
+              <app-icon name="package-open" [size]="24"></app-icon>
+            </div>
+            <strong>No seller products yet.</strong>
+            <span>Create your first product to populate the dashboard.</span>
+          </div>
+          } @else {
+          <div class="table-shell">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                  <th>Media</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (product of recentProducts(); track product.id) {
+                <tr>
+                  <td>
+                    <div class="product-cell">
+                      <div class="product-thumb">
+                        <app-icon name="package" [size]="18"></app-icon>
+                      </div>
+                      <div>
+                        <strong>{{ product.name }}</strong>
+                        <span>{{ product.quantity }} in stock</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><strong>${{ product.price }}</strong></td>
+                  <td>
+                    <span
+                      class="status-pill"
+                      [class.active]="statusFor(product) === 'Active'"
+                      [class.draft]="statusFor(product) === 'Needs media'"
+                      [class.archived]="statusFor(product) === 'Out of stock'"
+                    >
+                      {{ statusFor(product) }}
+                    </span>
+                  </td>
+                  <td>{{ mediaCountFor(product.id) }} files</td>
+                  <td>
+                    <div class="row-actions">
+                      <a
+                        class="row-btn"
+                        [routerLink]="['/seller/products', product.id, 'edit']"
+                        aria-label="Edit product"
+                        title="Edit product"
+                      >
+                        <app-icon name="edit" [size]="16"></app-icon>
+                      </a>
+                      <button
+                        class="row-btn danger"
+                        type="button"
+                        (click)="deleteProduct(product.id)"
+                        aria-label="Delete product"
+                        title="Delete product"
+                      >
+                        <app-icon name="trash" [size]="16"></app-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          }
+        </section>
+      </div>
+
+      <div class="insights-grid">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Store health</h3>
+              <p>Calculated from existing product and media endpoints</p>
+            </div>
+          </div>
+
+          <div class="panel-body health-list">
+            <div class="health-item">
+              <div class="health-icon">
+                <app-icon name="chart" [size]="18"></app-icon>
+              </div>
+              <strong>Catalog coverage</strong>
+              <span>{{ productsWithMedia() }} of {{ totalProducts() }} listings have at least one image.</span>
+            </div>
+            <div class="health-item">
+              <div class="health-icon success">
+                <app-icon name="circle-check" [size]="18"></app-icon>
+              </div>
+              <strong>Inventory readiness</strong>
+              <span>{{ activeListings() }} listings currently have stock available.</span>
+            </div>
+            <div class="health-item">
+              <div class="health-icon alert">
+                <app-icon name="alert" [size]="18"></app-icon>
+              </div>
+              <strong>Publishing work</strong>
+              <span>{{ draftTasks() }} listings need a description, price, or media update.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Publishing checklist</h3>
+              <p>Simple checks based on current backend data</p>
+            </div>
+          </div>
+
+          <div class="panel-body checklist">
+            <div class="check-item" [class.done]="totalProducts() > 0">
+              <app-icon [name]="totalProducts() > 0 ? 'circle-check' : 'circle'" [size]="18"></app-icon>
+              Add at least one product
+            </div>
+            <div class="check-item" [class.done]="activeListings() > 0">
+              <app-icon [name]="activeListings() > 0 ? 'circle-check' : 'circle'" [size]="18"></app-icon>
+              Keep at least one product in stock
+            </div>
+            <div class="check-item" [class.done]="productsWithMedia() === totalProducts() && totalProducts() > 0">
+              <app-icon
+                [name]="productsWithMedia() === totalProducts() && totalProducts() > 0 ? 'circle-check' : 'circle'"
+                [size]="18"
+              ></app-icon>
+              Attach media to every product
+            </div>
+          </div>
+        </section>
+      </div>
+      }
+    </main>
+  </div>
+</div>
