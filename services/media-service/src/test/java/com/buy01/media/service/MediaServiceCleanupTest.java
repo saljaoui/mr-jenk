@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.buy01.events.ProductDeletedEvent;
+import com.buy01.events.product.ProductDeletedEvent;
 import com.buy01.media.client.ProductServiceClient;
 import com.buy01.media.model.Media;
 import com.buy01.media.repository.MediaRepository;

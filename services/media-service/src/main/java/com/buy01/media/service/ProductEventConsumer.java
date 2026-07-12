@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import com.buy01.events.ProductDeletedEvent;
+import com.buy01.events.product.ProductDeletedEvent;
 
 import lombok.RequiredArgsConstructor;
 

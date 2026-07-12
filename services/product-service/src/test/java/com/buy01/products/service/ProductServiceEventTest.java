@@ -16,7 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.buy01.events.ProductDeletedEvent;
+import com.buy01.events.product.ProductDeletedEvent;
 import com.buy01.products.model.Product;
 import com.buy01.products.repository.ProductRepository;
 

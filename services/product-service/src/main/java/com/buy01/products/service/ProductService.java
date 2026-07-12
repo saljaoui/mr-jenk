@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.buy01.events.ProductDeletedEvent;
+import com.buy01.events.product.ProductDeletedEvent;
 import com.buy01.products.exception.ForbiddenException;
 import com.buy01.products.exception.ProductNotFoundException;
 import com.buy01.products.dto.ProductDto;

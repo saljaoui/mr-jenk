@@ -11,7 +11,7 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.util.backoff.FixedBackOff;
 
-import com.buy01.events.ProductDeletedEvent;
+import com.buy01.events.product.ProductDeletedEvent;
 
 @Configuration
 public class KafkaListenerConfig {
