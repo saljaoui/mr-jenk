@@ -7,10 +7,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.buy01.events.product.ProductDeletedEvent;
-import com.buy01.products.exception.ForbiddenException;
-import com.buy01.products.exception.ProductNotFoundException;
 import com.buy01.products.dto.ProductRequest;
 import com.buy01.products.dto.ProductResponse;
+import com.buy01.products.exception.ForbiddenException;
+import com.buy01.products.exception.ProductNotFoundException;
 import com.buy01.products.model.Product;
 import com.buy01.products.repository.ProductRepository;
 
@@ -21,6 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductService {
+
+    private static final String PRODUCT_NOT_FOUND = "Product not found";
+    private static final String ACCESS_DENIED = "You are not allowed to access this product";
 
     private final ProductRepository productRepository;
     private final ProductEventProducer eventProducer;
@@ -34,75 +37,106 @@ public class ProductService {
                 .userId(userId)
                 .build();
 
-        return ProductResponse.toResponse(productRepository.save(product));
+        Product savedProduct = this.productRepository.save(product);
+        return ProductResponse.toResponse(savedProduct);
     }
 
-    public ProductResponse getProductDetails(String productId, Authentication authentication) {
-        Product product = this.getProduct(productId);
-        ProductResponse productResponseDto = ProductResponse.toResponse(product);
-        boolean isOwner = authentication != null && product.getUserId().equals(authentication.getName());
-        productResponseDto.setOwner(isOwner);
-        return productResponseDto;
+    public ProductResponse updateProduct(
+            String productId,
+            ProductRequest request,
+            Authentication authentication) {
+
+        Product product = this.findByIdOrThrow(productId);
+        this.verifyOwnership(product, authentication);
+
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
+
+        if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+
+        if (request.getQuantity() != null) {
+            product.setQuantity(request.getQuantity());
+        }
+
+        Product savedProduct = this.productRepository.save(product);
+        return ProductResponse.toResponse(savedProduct);
+    }
+
+    public void deleteProduct(String productId, Authentication authentication) {
+        Product product = this.findByIdOrThrow(productId);
+        this.verifyOwnership(product, authentication);
+
+        this.productRepository.delete(product);
+
+        try {
+            this.eventProducer.sendProductDeletedEvent(
+                    new ProductDeletedEvent(
+                            productId,
+                            product.getUserId(),
+                            Instant.now()))
+                    .join();
+
+            log.info("Product {} deleted successfully", productId);
+
+        } catch (RuntimeException ex) {
+
+            log.error(
+                    "Failed to publish ProductDeletedEvent for product {}. Restoring product.",
+                    productId,
+                    ex);
+
+            try {
+                this.productRepository.save(product);
+            } catch (Exception restoreEx) {
+                log.error("Failed to restore deleted product {}", productId, restoreEx);
+                ex.addSuppressed(restoreEx);
+            }
+
+            throw new IllegalStateException(
+                    "Failed to publish product deleted event",
+                    ex.getCause() != null ? ex.getCause() : ex);
+        }
+    }
+
+    public ProductResponse getProduct(String productId, Authentication authentication) {
+        Product product = this.findByIdOrThrow(productId);
+
+        ProductResponse response = ProductResponse.toResponse(product);
+        response.setOwner(this.isOwner(product, authentication));
+
+        return response;
     }
 
     public List<Product> getProducts() {
         return this.productRepository.findAll();
     }
 
-    public Product updateProduct(String productId, ProductRequest product, Authentication authentication) {
-        Product updateProduct = this.checkOwnership(authentication, productId);
-        if (product.getName() != null) {
-            updateProduct.setName(product.getName());
-        }
-        if (product.getDescription() != null) {
-            updateProduct.setDescription(product.getDescription());
-        }
-        if (product.getPrice() != null) {
-            updateProduct.setPrice(product.getPrice());
-        }
-        if (product.getQuantity() != null) {
-            updateProduct.setQuantity(product.getQuantity());
-        }
-        return this.productRepository.save(updateProduct);
-    }
-
-    public void deleteProduct(String productId, Authentication authentication) {
-        Product deletedProduct = this.checkOwnership(authentication, productId);
-        this.productRepository.delete(deletedProduct);
-        try {
-            this.eventProducer.sendProductDeletedEvent(
-                    new ProductDeletedEvent(productId, deletedProduct.getUserId(), Instant.now()))
-                    .join();
-        } catch (RuntimeException ex) {
-            log.error("Kafka publish failed for deleted productId={}, restoring database state", productId, ex);
-            try {
-                this.productRepository.save(deletedProduct);
-            } catch (Exception restoreEx) {
-                log.error("Failed to restore productId={} after Kafka failure", productId, restoreEx);
-                ex.addSuppressed(restoreEx);
-            }
-            throw new IllegalStateException("Failed to publish product delete event", ex.getCause() == null ? ex : ex.getCause());
-        }
-    }
-    
     public List<Product> getProductsOwnedBy(String ownerId) {
         return this.productRepository.findAllByUserId(ownerId);
     }
-    
-    public Product checkOwnership(Authentication authentication, String productId) {
-        if (authentication == null || authentication.getName() == null) {
-            throw new ForbiddenException("You are not allowed to access this product");
-        }
-        String userId = authentication.getName();
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Product Not Found"));
-        if (!product.getUserId().equals(userId)) {
-            throw new ForbiddenException("You are not allowed to access this product");
-        }
-        return product;
+
+    private Product findByIdOrThrow(String productId) {
+        return this.productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
     }
 
-    private Product getProduct(String id) {
-        return this.productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product Not Found"));
+    private void verifyOwnership(Product product, Authentication authentication) {
+        if (!this.isOwner(product, authentication)) {
+            throw new ForbiddenException(ACCESS_DENIED);
+        }
+    }
+
+    private boolean isOwner(Product product, Authentication authentication) {
+        return authentication != null
+                && authentication.getName() != null
+                && product.getUserId() != null
+                && product.getUserId().equals(authentication.getName());
     }
 }

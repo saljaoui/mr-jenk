@@ -35,9 +35,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('SELLER')")
     @PostMapping
-    public ResponseEntity<ProductResponse> create(
-            @Valid @RequestBody ProductRequest product,
-            Authentication authentication) {
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest product, Authentication authentication) {
 
         String userId = authentication.getName();
         ProductResponse response = productService.createProduct(product, userId);
@@ -47,10 +45,14 @@ public class ProductController {
 
     @PreAuthorize("hasRole('SELLER')")
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable("id") String id, @Valid @RequestBody ProductRequest product,
+    public ResponseEntity<ProductResponse> update(@PathVariable String id, @Valid @RequestBody ProductRequest request,
             Authentication authentication) {
+
         requireSeller(authentication);
-        return ResponseEntity.ok(this.productService.updateProduct(id, product, authentication));
+
+        ProductResponse response = productService.updateProduct(id, request, authentication);
+
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasRole('SELLER')")
@@ -70,7 +72,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> find(@PathVariable String id, Authentication authentication) {
-        return ResponseEntity.ok(this.productService.getProductDetails(id, authentication));
+        return ResponseEntity.ok(this.productService.getProduct(id, authentication));
     }
 
     @GetMapping("/ownedBy/{id}")
