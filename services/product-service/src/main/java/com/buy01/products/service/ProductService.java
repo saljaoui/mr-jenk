@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import com.buy01.events.product.ProductDeletedEvent;
 import com.buy01.products.exception.ForbiddenException;
 import com.buy01.products.exception.ProductNotFoundException;
-import com.buy01.products.dto.ProductDto;
-import com.buy01.products.dto.ProductResponseDto;
+import com.buy01.products.dto.ProductRequest;
+import com.buy01.products.dto.ProductResponse;
 import com.buy01.products.model.Product;
 import com.buy01.products.repository.ProductRepository;
 
@@ -25,23 +25,25 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductEventProducer eventProducer;
 
-    public Product createProduct(ProductDto productData, String userId) {
-        Product product = new Product();
-        product.setName(productData.getName());
-        product.setDescription(productData.getDescription());
-        product.setPrice(productData.getPrice());
-        product.setQuantity(productData.getQuantity());
-        product.setUserId(userId);
-        return this.productRepository.save(product);
+    public ProductResponse createProduct(ProductRequest request, String userId) {
+        Product product = Product.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .quantity(request.getQuantity())
+                .userId(userId)
+                .build();
+
+        return ProductResponse.toResponse(productRepository.save(product));
     }
 
     public Product getProduct(String id) {
         return this.productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product Not Found"));
     }
 
-    public ProductResponseDto getProductDetails(String productId, Authentication authentication) {
+    public ProductResponse getProductDetails(String productId, Authentication authentication) {
         Product product = this.getProduct(productId);
-        ProductResponseDto productResponseDto = ProductResponseDto.toDto(product);
+        ProductResponse productResponseDto = ProductResponse.toResponse(product);
         boolean isOwner = authentication != null && product.getUserId().equals(authentication.getName());
         productResponseDto.setOwner(isOwner);
         return productResponseDto;
@@ -51,7 +53,7 @@ public class ProductService {
         return this.productRepository.findAll();
     }
 
-    public Product updateProduct(String productId, ProductDto product, Authentication authentication) {
+    public Product updateProduct(String productId, ProductRequest product, Authentication authentication) {
         Product updateProduct = this.checkOwnership(authentication, productId);
         if (product.getName() != null) {
             updateProduct.setName(product.getName());

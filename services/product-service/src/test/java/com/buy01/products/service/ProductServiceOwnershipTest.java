@@ -43,7 +43,7 @@ class ProductServiceOwnershipTest {
 
         when(productRepository.findById("product-1")).thenReturn(java.util.Optional.of(existing));
 
-        assertThatThrownBy(() -> productService.updateProduct("product-1", new com.buy01.products.dto.ProductDto(), authentication))
+        assertThatThrownBy(() -> productService.updateProduct("product-1", new com.buy01.products.dto.ProductRequest(), authentication))
                 .isInstanceOf(ForbiddenException.class);
 
         verify(productRepository, never()).save(existing);

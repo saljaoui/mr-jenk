@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.buy01.products.dto.ProductDto;
-import com.buy01.products.dto.ProductResponseDto;
+import com.buy01.products.dto.ProductRequest;
+import com.buy01.products.dto.ProductResponse;
 import com.buy01.products.model.Product;
 import com.buy01.products.service.ProductService;
 
@@ -30,24 +30,30 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/products")
 @AllArgsConstructor
 public class ProductController {
+
     private final ProductService productService;
+
+    @PreAuthorize("hasRole('SELLER')")
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_SELLER')")
-    public ResponseEntity<?> create(@Valid @RequestPart("product") ProductDto product, Authentication authentication) {
-        requireSeller(authentication);
+    public ResponseEntity<ProductResponse> create(
+            @Valid @RequestBody ProductRequest product,
+            Authentication authentication) {
+
         String userId = authentication.getName();
-        Product createdProduct = this.productService.createProduct(product, userId);
-        return ResponseEntity.ok(Map.of("id", createdProduct.getId()));
+        ProductResponse response = productService.createProduct(product, userId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_SELLER')")
+    @PreAuthorize("hasRole('SELLER')")
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable("id") String id, @Valid @RequestBody ProductDto product, Authentication authentication) {
+    public ResponseEntity<Product> update(@PathVariable("id") String id, @Valid @RequestBody ProductRequest product,
+            Authentication authentication) {
         requireSeller(authentication);
         return ResponseEntity.ok(this.productService.updateProduct(id, product, authentication));
     }
 
-    @PreAuthorize("hasAuthority('ROLE_SELLER')")
+    @PreAuthorize("hasRole('SELLER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable String id, Authentication authentication) {
         requireSeller(authentication);
@@ -63,7 +69,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDto> find(@PathVariable String id,  Authentication authentication) {
+    public ResponseEntity<ProductResponse> find(@PathVariable String id, Authentication authentication) {
         return ResponseEntity.ok(this.productService.getProductDetails(id, authentication));
     }
 

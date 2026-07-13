@@ -11,22 +11,22 @@ import com.buy01.products.model.Product;
 @AllArgsConstructor
 @Data
 @Builder
-
-public class ProductResponseDto {
+public class ProductResponse {
     private String id;
     private String name;
     private String description;
     private Double price;
-    private int quantity;
+    private Integer quantity;
     private boolean owner;
 
-    public static ProductResponseDto toDto(Product product) {
-        return ProductResponseDto.builder()
+    public static ProductResponse toResponse(Product product) {
+        return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
+                .owner(false)
                 .build();
     }
 }
