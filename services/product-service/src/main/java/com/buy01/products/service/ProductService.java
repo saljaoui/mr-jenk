@@ -37,10 +37,6 @@ public class ProductService {
         return ProductResponse.toResponse(productRepository.save(product));
     }
 
-    public Product getProduct(String id) {
-        return this.productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product Not Found"));
-    }
-
     public ProductResponse getProductDetails(String productId, Authentication authentication) {
         Product product = this.getProduct(productId);
         ProductResponse productResponseDto = ProductResponse.toResponse(product);
@@ -104,5 +100,9 @@ public class ProductService {
             throw new ForbiddenException("You are not allowed to access this product");
         }
         return product;
+    }
+
+    private Product getProduct(String id) {
+        return this.productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product Not Found"));
     }
 }
