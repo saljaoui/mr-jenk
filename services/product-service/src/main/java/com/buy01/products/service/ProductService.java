@@ -28,7 +28,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductEventProducer eventProducer;
 
-    public ProductResponse createProduct(ProductRequest request, String userId) {
+    public Product createProduct(ProductRequest request, String userId) {
         Product product = Product.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -37,11 +37,10 @@ public class ProductService {
                 .userId(userId)
                 .build();
 
-        Product savedProduct = this.productRepository.save(product);
-        return ProductResponse.toResponse(savedProduct);
+        return this.productRepository.save(product);
     }
 
-    public ProductResponse updateProduct(
+    public Product updateProduct(
             String productId,
             ProductRequest request,
             Authentication authentication) {
@@ -65,8 +64,7 @@ public class ProductService {
             product.setQuantity(request.getQuantity());
         }
 
-        Product savedProduct = this.productRepository.save(product);
-        return ProductResponse.toResponse(savedProduct);
+        return this.productRepository.save(product);
     }
 
     public void deleteProduct(String productId, Authentication authentication) {

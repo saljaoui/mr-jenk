@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.buy01.products.dto.ProductRequest;
 import com.buy01.products.dto.ProductResponse;
@@ -35,12 +33,11 @@ public class ProductController {
 
     @PreAuthorize("hasRole('SELLER')")
     @PostMapping
-    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest product, Authentication authentication) {
-
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request, Authentication authentication) {
         String userId = authentication.getName();
-        ProductResponse response = productService.createProduct(product, userId);
+        Product product = productService.createProduct(request, userId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProductResponse.toResponse(product));
     }
 
     @PreAuthorize("hasRole('SELLER')")
@@ -48,43 +45,35 @@ public class ProductController {
     public ResponseEntity<ProductResponse> update(@PathVariable String id, @Valid @RequestBody ProductRequest request,
             Authentication authentication) {
 
-        requireSeller(authentication);
+        Product updated = this.productService.updateProduct(id, request, authentication);
 
-        ProductResponse response = productService.updateProduct(id, request, authentication);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ProductResponse.toResponse(updated));
     }
 
     @PreAuthorize("hasRole('SELLER')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable String id, Authentication authentication) {
-        requireSeller(authentication);
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable String id, Authentication authentication) {
         this.productService.deleteProduct(id, authentication);
+
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", String.format("Product \"%s\" is deleted successfully", id)));
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> find() {
+    public ResponseEntity<List<Product>> getAll() {
         return ResponseEntity.ok(this.productService.getProducts());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> find(@PathVariable String id, Authentication authentication) {
+    public ResponseEntity<ProductResponse> getById(@PathVariable String id, Authentication authentication) {
         return ResponseEntity.ok(this.productService.getProduct(id, authentication));
     }
 
     @GetMapping("/ownedBy/{id}")
-    public ResponseEntity<List<Product>> findAllBy(@PathVariable String id) {
-        return ResponseEntity.ok(this.productService.getProductsOwnedBy(id));
-    }
-
-    private void requireSeller(Authentication authentication) {
-        boolean seller = authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_SELLER".equals(authority.getAuthority()));
-        if (!seller) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seller role required");
-        }
+    public ResponseEntity<List<ProductResponse>> getOwnedBy(@PathVariable String id) {
+        return ResponseEntity.ok(this.productService.getProductsOwnedBy(id).stream()
+                .map(ProductResponse::toResponse)
+                .toList());
     }
 }
