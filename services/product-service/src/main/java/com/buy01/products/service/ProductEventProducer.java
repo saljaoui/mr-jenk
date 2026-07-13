@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductEventProducer {
 
-    private static final String TOPIC = "product-events";
+    private static final String TOPIC = "product-deleted";
 
     private final KafkaTemplate<String, ProductDeletedEvent> kafkaTemplate;
 
