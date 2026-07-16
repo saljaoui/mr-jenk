@@ -4,7 +4,7 @@ import java.time.Instant;
 
 public record ProductDeletedEvent(
         String productId,
-        String deletedBy,
+        String userId,
         Instant deletedAt
 ) {
 }

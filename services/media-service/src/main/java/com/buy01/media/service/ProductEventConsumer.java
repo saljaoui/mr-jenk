@@ -15,9 +15,6 @@ public class ProductEventConsumer {
 
     @KafkaListener(topics = "product-deleted", groupId = "media-service-group")
     public void handleProductEvent(ProductDeletedEvent event) {
-        MediaCleanupResult cleanupResult = this.mediaService.deleteAllByProductId(event.productId());
-        if (cleanupResult.hasFailures()) {
-            throw new IllegalStateException(cleanupResult.summary());
-        }
+        this.mediaService.deleteAllByProductId(event.productId(), event.userId());
     }
 }

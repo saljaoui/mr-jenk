@@ -137,4 +137,11 @@ public class ProductService {
                 && product.getUserId() != null
                 && product.getUserId().equals(authentication.getName());
     }
+
+    public boolean isOwner(String productId, String userId) {
+        Product product = findByIdOrThrow(productId);
+
+        return product.getUserId() != null
+                && product.getUserId().equals(userId);
+    }
 }

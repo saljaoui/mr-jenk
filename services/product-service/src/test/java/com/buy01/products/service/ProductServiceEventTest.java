@@ -53,7 +53,7 @@ class ProductServiceEventTest {
         verify(eventProducer).sendProductDeletedEvent(org.mockito.ArgumentMatchers.argThat(event ->
                 event != null
                         && "product-1".equals(event.productId())
-                        && "seller-1".equals(event.deletedBy())));
+                        && "seller-1".equals(event.userId())));
     }
 
     @Test
