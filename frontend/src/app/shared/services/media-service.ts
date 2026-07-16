@@ -28,13 +28,21 @@ export interface MediaMessageResponse {
 export class MediaService {
   private readonly api = inject(ApiClient);
 
-  publishMedia(productId: string, files: File[]): Observable<MediaMessageResponse> {
+  publishMedia(
+    productId: string,
+    files: File[]
+  ): Observable<MediaMessageResponse> {
+
     const formData = new FormData();
-    formData.append('productId', productId);
-    files.forEach((file) => {
+
+    files.forEach(file => {
       formData.append('images', file, file.name);
     });
-    return this.api.post<MediaMessageResponse>('/media/upload', formData);
+
+    return this.api.post<MediaMessageResponse>(
+      `/media/products/${productId}/media`,
+      formData
+    );
   }
 
   getMediaByProduct(productId: string): Observable<Media[]> {

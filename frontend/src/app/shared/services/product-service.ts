@@ -47,14 +47,7 @@ export class ProductService {
   }
 
   publishProduct(product: ProductRequest): Observable<CreateProductResponse> {
-    const formData = new FormData();
-    formData.append(
-      'product',
-      new Blob([JSON.stringify(product)], {
-        type: 'application/json'
-      })
-    );
-    return this.api.post<CreateProductResponse>('/products', formData);
+    return this.api.post<CreateProductResponse>('/products', product);
   }
 
   deleteProduct(productId: string): Observable<DeleteProductResponse> {
