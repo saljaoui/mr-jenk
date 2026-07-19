@@ -36,7 +36,7 @@ export class ProductListComponent implements OnInit {
 
     this.productService.getProducts().subscribe({
       next: (response: ProductResponse[]) => {
-        this.productListSignal.set(response ?? []);
+        this.productListSignal.set(response);
         this.isLoading.set(false);
       },
       error: (err) => {

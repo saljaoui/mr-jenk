@@ -30,6 +30,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/media/primary/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/media/product/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(gatewayHeaderAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

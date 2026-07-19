@@ -33,7 +33,8 @@ public class ProductController {
 
     @PreAuthorize("hasRole('SELLER')")
     @PostMapping
-    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request, Authentication authentication) {
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request,
+            Authentication authentication) {
         String userId = authentication.getName();
         Product product = productService.createProduct(request, userId);
 
@@ -61,8 +62,11 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAll() {
-        return ResponseEntity.ok(this.productService.getProducts());
+    public ResponseEntity<List<ProductResponse>> getAll() {
+        return ResponseEntity.ok(
+                productService.getProducts().stream()
+                        .map(ProductResponse::toResponse)
+                        .toList());
     }
 
     @GetMapping("/{id}")

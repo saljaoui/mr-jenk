@@ -50,6 +50,8 @@ public class MediaController {
         @GetMapping("/{mediaId}")
         public ResponseEntity<Resource> getImage(
                         @PathVariable String mediaId) {
+                                System.out.println("mediaId: " + mediaId);
+                
                 Resource resource = mediaService.find(mediaId);
 
                 MediaType mediaType = MediaTypeFactory

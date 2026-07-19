@@ -98,7 +98,7 @@ public class MediaService {
                 .stream()
                 .map(media -> new MediaResponse(
                         media.getId(),
-                        "/api/media/" + media.getId()))
+                        "/media/" + media.getId()))
                 .toList();
     }
 

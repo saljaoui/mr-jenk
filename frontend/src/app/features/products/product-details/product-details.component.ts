@@ -8,6 +8,7 @@ import { ToastService } from '../../../shared/services/toast-service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiClient } from '../../../core/api/api-client.service';
 import { IconComponent } from '../../../shared/icon/icon.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-product-details',
@@ -71,7 +72,7 @@ export class ProductDetailsComponent implements OnInit {
             this.toastService.error('The product you’re looking for doesn’t exist or may have been removed.');
             this.router.navigate(['/not-found']);
             break;
-        
+
           default:
             this.errorMessage.set(
               this.api.getErrorMessage(err, 'Unable to load this product.'),
@@ -131,6 +132,6 @@ export class ProductDetailsComponent implements OnInit {
   }
 
   imageDataUrl(media: MediaUploadData): string {
-    return this.mediaService.toDataUrl(media);
+    return `${environment.apiBaseUrl}/media/${media.id}`;
   }
 }

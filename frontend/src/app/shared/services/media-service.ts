@@ -6,6 +6,7 @@ export interface Media {
   id: string;
   base64Image: string;
   contentType: string | null;
+  url: string;
 }
 
 export type MediaUploadData = Media;

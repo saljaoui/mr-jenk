@@ -19,6 +19,10 @@ public class RouteValidator {
             return false;
         }
 
+        if (method == HttpMethod.GET && path.startsWith("/api/media/")) {
+            return false;
+        }
+
         if (method == HttpMethod.GET && path.startsWith("/api/media/primary/")) {
             return false;
         }
