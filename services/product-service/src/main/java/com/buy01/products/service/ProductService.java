@@ -106,6 +106,10 @@ public class ProductService {
     public ProductResponse getProduct(String productId, Authentication authentication) {
         Product product = this.findByIdOrThrow(productId);
 
+        System.out.println("ProductService.getProduct: productId=" + productId + ", product=" + product);
+        System.out.println("ProductService.getProduct: authentication=" + authentication);
+
+
         ProductResponse response = ProductResponse.toResponse(product);
         response.setOwner(this.isOwner(product, authentication));
 

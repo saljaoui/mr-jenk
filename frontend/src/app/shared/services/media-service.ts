@@ -50,13 +50,21 @@ export class MediaService {
     return this.api.get<Media[]>(`/media/product/${productId}`);
   }
 
-  replaceProductMedia(productId: string, files: File[]): Observable<MediaMessageResponse> {
+  replaceProductMedia(
+    productId: string,
+    files: File[]
+  ): Observable<MediaMessageResponse> {
+
     const formData = new FormData();
-    formData.append('productId', productId);
+
     files.forEach((file) => {
       formData.append('images', file, file.name);
     });
-    return this.api.put<MediaMessageResponse>('/media/product', formData);
+
+    return this.api.put<MediaMessageResponse>(
+      `/media/product/${productId}`,
+      formData
+    );
   }
 
   deleteProductMedia(productId: string): Observable<MediaMessageResponse> {

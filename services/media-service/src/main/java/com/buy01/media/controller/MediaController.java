@@ -50,7 +50,6 @@ public class MediaController {
         @GetMapping("/{mediaId}")
         public ResponseEntity<Resource> getImage(
                         @PathVariable String mediaId) {
-                                System.out.println("mediaId: " + mediaId);
                 
                 Resource resource = mediaService.find(mediaId);
 
@@ -96,6 +95,8 @@ public class MediaController {
                         @PathVariable String productId,
                         @RequestParam("images") List<MultipartFile> images,
                         Principal principal) {
+                                System.out.println("Updating media for productId: " + productId + " by user: " + principal.getName());
+                                
                 mediaService.replaceMedia(images, productId, principal.getName());
 
                 return ResponseEntity.ok(

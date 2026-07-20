@@ -63,6 +63,8 @@ export class ProductDetailsComponent implements OnInit {
     this.productService.getProduct(productId).subscribe({
       next: (response: ProductResponse) => {
         this.productDetailsSignal.set(response);
+        console.log('Product details:', response);
+        console.log('Product details signal:', this.productDetailsSignal());
         this.isLoading.set(false);
       },
       error: (err: HttpErrorResponse) => {
@@ -109,6 +111,7 @@ export class ProductDetailsComponent implements OnInit {
     })[0];
     this.selectedImageSignal.set(selectedImage);
   }
+  
   updateProduct() {
     this.router.navigate(['/seller/products', this.productId, 'edit']);
   }

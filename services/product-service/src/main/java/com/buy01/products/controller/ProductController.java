@@ -71,6 +71,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getById(@PathVariable String id, Authentication authentication) {
+        
         return ResponseEntity.ok(this.productService.getProduct(id, authentication));
     }
 

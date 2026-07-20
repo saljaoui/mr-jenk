@@ -14,11 +14,7 @@ public class RouteValidator {
         if (path.startsWith("/api/auth/")) {
             return false;
         }
-
-        if (method == HttpMethod.GET && path.startsWith("/api/products")) {
-            return false;
-        }
-
+        
         if (method == HttpMethod.GET && path.startsWith("/api/media/")) {
             return false;
         }
