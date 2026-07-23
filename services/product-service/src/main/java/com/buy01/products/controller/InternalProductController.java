@@ -17,12 +17,12 @@ public class InternalProductController {
 
     private final ProductService productService;
 
-    @GetMapping("/{productId}/ownership")
-    public boolean checkOwnership(
-            @PathVariable String productId,
-            @RequestHeader("X-User-Id") String userId
-    ) {
-        boolean result = productService.isOwner(productId, userId);
-        return result;
-    }
+    // @GetMapping("/{productId}/ownership")
+    // public boolean checkOwnership(
+    //         @PathVariable String productId,
+    //         @RequestHeader("X-User-Id") String userId
+    // ) {
+    //     boolean result = productService.isOwner(productId, userId);
+    //     return result;
+    // }
 }

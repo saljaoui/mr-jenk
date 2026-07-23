@@ -22,13 +22,21 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getAllProducts(Pageable pageable) {
-        return ResponseEntity.ok(productService.findAll(pageable));
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(Pageable pageable, Authentication authentication) {
+        String currentUserId = authentication != null
+                ? authentication.getName()
+                : null;
+                
+        return ResponseEntity.ok(productService.findAll(currentUserId, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable String id) {
-        return ResponseEntity.ok(productService.findById(id));
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable String id, Authentication authentication) {
+        String currentUserId = authentication != null
+                ? authentication.getName()
+                : null;
+
+        return ResponseEntity.ok(productService.findById(id, currentUserId));
     }
 
     @PostMapping
