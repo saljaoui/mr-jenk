@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.buy01.products.dto.ProductRequest;
 import com.buy01.products.dto.ProductResponse;
+import com.buy01.products.event.ProductEventPublisher;
 import com.buy01.products.exception.ProductNotFoundException;
 import com.buy01.products.model.Product;
 import com.buy01.products.repository.ProductRepository;
@@ -19,14 +20,15 @@ import lombok.RequiredArgsConstructor;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductEventPublisher eventPublisher;
 
     public Page<ProductResponse> findAll(String userId, Pageable pageable) {
         return productRepository.findAll(pageable)
                 .map(product -> toResponse(product, userId));
     }
 
-    public ProductResponse findById(String id, String userId) {
-        Product product = getProductOrThrow(id);
+    public ProductResponse findById(String productId, String userId) {
+        Product product = getProductOrThrow(productId);
         System.out.println("\nuserId: " + userId + ", product.getUserId(): " + product.getUserId() + "\n");
         return toResponse(product, userId);
     }
@@ -49,8 +51,8 @@ public class ProductService {
         return toResponse(saved, userId);
     }
 
-    public ProductResponse update(String id, ProductRequest request, String userId) {
-        Product product = getProductOrThrow(id);
+    public ProductResponse update(String productId, ProductRequest request, String userId) {
+        Product product = getProductOrThrow(productId);
         checkOwnership(product, userId);
 
         product.setName(request.getName());
@@ -62,17 +64,20 @@ public class ProductService {
         return toResponse(saved, userId);
     }
 
-    public void delete(String id, String userId) {
-        Product product = getProductOrThrow(id);
+    public void delete(String productId, String userId) {
+        Product product = getProductOrThrow(productId);
         checkOwnership(product, userId);
         productRepository.delete(product);
+        eventPublisher.publishProductDeleted(productId);
     }
 
     // ---- helpers ----
 
-    private Product getProductOrThrow(String id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+    private Product getProductOrThrow(String productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
+                
+        return product;
     }
 
     private void checkOwnership(Product product, String userId) {

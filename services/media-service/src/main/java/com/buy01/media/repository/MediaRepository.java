@@ -8,4 +8,5 @@ import com.buy01.media.model.Media;
 
 public interface MediaRepository extends MongoRepository<Media, String> {
     List<Media> findByProductId(String productId);
+    void deleteByProductId(String productId);
 }
