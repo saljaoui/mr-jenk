@@ -9,7 +9,7 @@ public class RouteValidator {
 
     private static final String[] PUBLIC_GET_PATHS = {
             "/api/products",
-            "/api/media/images",
+            "/api/media",
             "/actuator/health"
     };
 

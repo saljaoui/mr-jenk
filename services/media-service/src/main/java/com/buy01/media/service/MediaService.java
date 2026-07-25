@@ -1,215 +1,115 @@
 package com.buy01.media.service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.buy01.media.client.ProductServiceClient;
 import com.buy01.media.dto.MediaResponse;
+import com.buy01.media.exception.InvalidFileException;
+import com.buy01.media.exception.MediaNotFoundException;
+import com.buy01.media.exception.UnauthorizedActionException;
 import com.buy01.media.model.Media;
 import com.buy01.media.repository.MediaRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MediaService {
 
-    private static final Path UPLOAD_DIR = Paths.get("uploads")
-            .toAbsolutePath()
-            .normalize();
-
-    private static final long MAX_FILE_SIZE = 2 * 1024 * 1024;
-    private static final int MAX_IMAGES_PER_PRODUCT = 5;
+    private static final long MAX_SIZE_BYTES = 2L * 1024 * 1024; // 2 MB
 
     private final MediaRepository mediaRepository;
+    private final FileStorageService fileStorageService;
     private final ProductServiceClient productServiceClient;
 
-    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/avif");
+    @Transactional
+    public MediaResponse upload(MultipartFile file, String productId, String userId) {
+        validateFile(file);
 
-    public void upload(
-            List<MultipartFile> images,
-            String productId,
-            String userId) {
-
-        checkOwnership(productId, userId);
-        validateImages(images);
-        saveImages(images, productId);
-    }
-
-    public void replaceMedia(
-            List<MultipartFile> images,
-            String productId,
-            String userId) {
-        checkOwnership(productId, userId);
-        validateImages(images);
-
-        deleteFilesAndRecords(productId);
-        saveImages(images, productId);
-    }
-
-    public void deleteAllByProductId(
-            String productId,
-            String userId) {
-        checkOwnership(productId, userId);
-        deleteFilesAndRecords(productId);
-    }
-
-    public Resource find(String mediaId) {
-        Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> notFound("Media not found"));
-
-        Path imagePath = getSafePath(media.getImagePath());
-
-        if (!Files.exists(imagePath)) {
-            throw notFound("Image file not found");
+        if (!productServiceClient.checkOwnership(productId, userId)) {
+            throw new UnauthorizedActionException("You do not own this product");
         }
 
-        return new FileSystemResource(imagePath);
+        String storedPath = fileStorageService.store(file);
+
+        try {
+            Media media = new Media();
+            media.setProductId(productId);
+            media.setImagePath(storedPath);
+
+            Media saved = mediaRepository.save(media);
+            return toResponse(saved);
+
+        } catch (Exception e) {
+            fileStorageService.delete(storedPath);
+            throw e;
+        }
     }
 
-    public Resource findPrimaryImage(String productId) {
-        Media media = mediaRepository.findAllByProductId(productId)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> notFound(
-                        "No media found for product: " + productId));
-
-        return find(media.getId());
+    public FileStorageService.LoadedFile loadFile(String id) {
+        Media media = getOrThrow(id);
+        return fileStorageService.load(media.getImagePath());
     }
 
-    public List<MediaResponse> findAllMediaByProductId(String productId) {
-        return mediaRepository.findAllByProductId(productId)
+    public List<MediaResponse> findByProductId(String productId) {
+        return mediaRepository.findByProductId(productId)
                 .stream()
-                .map(media -> new MediaResponse(
-                        media.getId(),
-                        "/media/" + media.getId()))
+                .map(this::toResponse)
                 .toList();
     }
 
-    private void checkOwnership(String productId, String userId) {
-        boolean response = productServiceClient.checkOwnership(productId, userId);
+    @Transactional
+    public void delete(String id, String userId) {
+        Media media = getOrThrow(id);
 
-        if (!response) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "You do not own this product");
+        if (!productServiceClient.checkOwnership(media.getProductId(), userId)) {
+            throw new UnauthorizedActionException("You do not own this media");
+        }
+
+        fileStorageService.delete(media.getImagePath());
+        mediaRepository.delete(media);
+    }
+
+    @Transactional
+    public void deleteAllForProduct(String productId) {
+        List<Media> mediaList = mediaRepository.findByProductId(productId);
+
+        for (Media media : mediaList) {
+            fileStorageService.delete(media.getImagePath());
+        }
+
+        mediaRepository.deleteAll(mediaList);
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new InvalidFileException("File is required");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new InvalidFileException("Only image files are allowed");
+        }
+
+        if (file.getSize() > MAX_SIZE_BYTES) {
+            throw new InvalidFileException("File exceeds the 2MB size limit");
         }
     }
 
-    private void validateImages(List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) {
-            throw badRequest("At least one image is required");
-        }
-
-        if (images.size() > MAX_IMAGES_PER_PRODUCT) {
-            throw badRequest(
-                    "A product can have at most "
-                            + MAX_IMAGES_PER_PRODUCT
-                            + " images");
-        }
-
-        for (MultipartFile image : images) {
-            if (image == null || image.isEmpty()) {
-                throw badRequest("Image file is empty");
-            }
-
-            if (image.getSize() > MAX_FILE_SIZE) {
-                throw badRequest("Image maximum size is 2MB");
-            }
-
-            if (!ALLOWED_CONTENT_TYPES.contains(image.getContentType())) {
-                throw badRequest(
-                        "Only JPG, PNG, WEBP, and AVIF images are allowed");
-            }
-        }
+    private Media getOrThrow(String id) {
+        return mediaRepository.findById(id)
+                .orElseThrow(() ->
+                        new MediaNotFoundException("Media not found with id: " + id));
     }
 
-    private void saveImages(
-            List<MultipartFile> images,
-            String productId) {
-        try {
-            Files.createDirectories(UPLOAD_DIR);
-
-            for (MultipartFile image : images) {
-                String filename = UUID.randomUUID() + getExtension(image);
-                Path targetPath = getSafePath(filename);
-
-                image.transferTo(targetPath);
-
-                mediaRepository.save(
-                        Media.builder()
-                                .productId(productId)
-                                .imagePath(filename)
-                                .build());
-            }
-        } catch (IOException ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Could not save image");
-        }
-    }
-
-    private void deleteFilesAndRecords(String productId) {
-        List<Media> mediaList = mediaRepository.findAllByProductId(productId);
-
-        try {
-            for (Media media : mediaList) {
-                Files.deleteIfExists(getSafePath(media.getImagePath()));
-            }
-
-            mediaRepository.deleteAllByProductId(productId);
-        } catch (IOException ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Could not delete image");
-        }
-    }
-
-    private String getExtension(MultipartFile image) {
-        String filename = image.getOriginalFilename();
-
-        if (filename == null || !filename.contains(".")) {
-            throw badRequest("Image filename must include an extension");
-        }
-
-        return filename.substring(filename.lastIndexOf("."));
-    }
-
-    private Path getSafePath(String filename) {
-        if (filename == null || filename.isBlank()) {
-            throw badRequest("Invalid image filename");
-        }
-
-        Path path = UPLOAD_DIR.resolve(filename).normalize();
-
-        if (!path.startsWith(UPLOAD_DIR)) {
-            throw badRequest("Invalid image path");
-        }
-
-        return path;
-    }
-
-    private ResponseStatusException badRequest(String message) {
-        return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-    }
-
-    private ResponseStatusException notFound(String message) {
-        return new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+    private MediaResponse toResponse(Media media) {
+        return new MediaResponse(
+                media.getId(),
+                "/api/media" + media.getId(),
+                media.getProductId()
+        );
     }
 }

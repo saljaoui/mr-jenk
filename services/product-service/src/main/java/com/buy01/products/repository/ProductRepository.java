@@ -11,4 +11,5 @@ import com.buy01.products.model.Product;
 public interface ProductRepository extends MongoRepository<Product, String> {
     List<Product> findAllByUserId(String ownerId);
     Page<Product> findByUserId(String userId, Pageable pageable);
+    boolean existsByIdAndUserId(String id, String userId);
 }

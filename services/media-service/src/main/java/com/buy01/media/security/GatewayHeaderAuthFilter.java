@@ -17,13 +17,6 @@ import java.util.List;
 public class GatewayHeaderAuthFilter extends OncePerRequestFilter {
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return "GET".equalsIgnoreCase(request.getMethod())
-                && (path.equals("/api/products") || path.startsWith("/api/products/"));
-    }
-
-    @Override
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
             FilterChain chain)

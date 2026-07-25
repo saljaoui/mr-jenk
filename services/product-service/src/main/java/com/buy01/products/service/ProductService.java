@@ -83,6 +83,10 @@ public class ProductService {
         }
     }
 
+    public boolean isOwner(String productId, String userId) {
+        return productRepository.existsByIdAndUserId(productId, userId);
+    }
+
     private ProductResponse toResponse(Product product, String userId) {
         return ProductResponse.builder()
                 .id(product.getId())
