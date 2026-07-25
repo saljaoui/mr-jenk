@@ -76,7 +76,7 @@ public class ProductService {
     private Product getProductOrThrow(String productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
-                
+
         return product;
     }
 

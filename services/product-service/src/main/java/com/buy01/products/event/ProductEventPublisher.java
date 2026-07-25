@@ -7,6 +7,7 @@ import com.buy01.events.product.ProductDeletedEvent;
 
 @Service
 public class ProductEventPublisher {
+
     private final KafkaTemplate<String, ProductDeletedEvent> kafkaTemplate;
 
     public ProductEventPublisher(KafkaTemplate<String, ProductDeletedEvent> kafkaTemplate) {
@@ -14,6 +15,7 @@ public class ProductEventPublisher {
     }
 
     public void publishProductDeleted(String productId) {
-        kafkaTemplate.send("product-deleted", productId, new ProductDeletedEvent(productId));
+        ProductDeletedEvent event = new ProductDeletedEvent(productId);
+        kafkaTemplate.send("product-deleted", productId, event);
     }
 }

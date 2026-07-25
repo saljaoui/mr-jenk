@@ -8,14 +8,17 @@ import com.buy01.media.repository.MediaRepository;
 
 @Component
 public class ProductDeletedListener {
+
     private final MediaRepository mediaRepository;
 
     public ProductDeletedListener(MediaRepository mediaRepository) {
         this.mediaRepository = mediaRepository;
     }
 
-    @KafkaListener(topics = "product-deleted", groupId = "media-service-group")
+    @KafkaListener(topics = "product-deleted", groupId = "media-service")
     public void onProductDeleted(ProductDeletedEvent event) {
+
         mediaRepository.deleteByProductId(event.productId());
+
     }
 }
