@@ -14,7 +14,7 @@ public class ProductDeletedListener {
         this.mediaRepository = mediaRepository;
     }
 
-    @KafkaListener(topics = "product-deleted", groupId = "media-service")
+    @KafkaListener(topics = "product-deleted", groupId = "media-service-group")
     public void onProductDeleted(ProductDeletedEvent event) {
         mediaRepository.deleteByProductId(event.productId());
     }
