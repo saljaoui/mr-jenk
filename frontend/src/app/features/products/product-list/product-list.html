@@ -249,6 +249,11 @@
         </div>
         } @else {
         <div class="product-grid">
+          @if (totalPages() > 0) {
+          <div class="pagination-info">
+            <span>{{ totalElements() }} product{{ totalElements() === 1 ? '' : 's' }}</span>
+          </div>
+          }
           @for (product of productList(); track product.id) {
           <article class="product-card">
             <div class="product-media media-ceramic">
@@ -256,7 +261,13 @@
               <button class="wish-btn" type="button" aria-label="Save product">
                 <app-icon name="heart" [size]="17"></app-icon>
               </button>
-              <img [src]="getProductImageUrl(product.id)" [alt]="product.name">
+              @if (getProductImage(product.id); as imgUrl) {
+              <img [src]="imgUrl" [alt]="product.name" loading="lazy">
+              } @else {
+              <div class="media-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14c0-3.771 0-5.657 1.172-6.828C4.343 6 6.229 6 10 6h4c3.771 0 5.657 0 6.828 1.172C22 8.343 22 10.229 22 14c0 3.771 0 5.657-1.172 6.828C19.657 22 17.771 22 14 22h-4c-3.771 0-5.657 0-6.828-1.172C2 19.657 2 17.771 2 14Z"/><path d="m4 7l-.012-1c.112-.931.347-1.574.837-2.063C5.765 3 7.279 3 10.307 3h3.211c3.028 0 4.541 0 5.482.937c.49.489.725 1.132.837 2.063v1"/><circle cx="17.5" cy="10.5" r="1.5"/><path stroke-linecap="round" d="m2 14.5l1.752-1.533a2.3 2.3 0 0 1 3.14.105l4.29 4.29a2 2 0 0 0 2.564.222l.299-.21a3 3 0 0 1 3.731.225L21 20.5"/></g></svg>
+              </div>
+              }
             </div>
             <div class="product-body">
               <div class="product-meta">
@@ -275,6 +286,27 @@
             </div>
           </article>
           }
+        </div>
+        }
+        @if (totalPages() > 1) {
+        <div class="pagination-controls">
+          <button class="pagination-btn" type="button" (click)="prevPage()" [disabled]="currentPage() === 0">
+            <app-icon name="arrow-left" [size]="16"></app-icon>
+            Previous
+          </button>
+          <div class="pagination-pages">
+            @for (page of pageRange(); track page) {
+            <button class="pagination-page" type="button" [class.active]="page === currentPage()"
+              (click)="goToPage(page)">
+              {{ page + 1 }}
+            </button>
+            }
+          </div>
+          <button class="pagination-btn" type="button" (click)="nextPage()"
+            [disabled]="currentPage() >= totalPages() - 1">
+            Next
+            <app-icon name="arrow-right" [size]="16"></app-icon>
+          </button>
         </div>
         }
       </section>

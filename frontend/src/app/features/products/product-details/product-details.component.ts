@@ -126,7 +126,7 @@ export class ProductDetailsComponent implements OnInit {
   }
 
   imageUrl(media: Media): string {
-    return `${environment.apiBaseUrl}${media.url}`;
+    return `${environment.apiBaseUrl}${media.imageUrl}`;
   }
 
   updateProduct(): void {

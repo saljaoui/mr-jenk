@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 export interface Media {
   id: string;
   productId: string;
-  url: string;
+  imageUrl: string;
 }
 
 export interface ProductImage {
@@ -41,6 +41,7 @@ export class MediaService {
   }
 
   imageUrl(media: Media): string {
-    return `${environment.apiBaseUrl}${media.url}`;
+    console.log('MediaService.imageUrl called with media:', media);
+    return `${environment.apiBaseUrl}${media.imageUrl}`;
   }
 }

@@ -24,15 +24,9 @@ export class SellerNavComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.productCount !== null) {
-      return;
-    }
-
+    if (this.productCount !== null) return;
     const user = this.authService.getStoredUser();
-    if (!user) {
-      return;
-    }
-
+    if (!user) return;
     this.productService.getProductsOwnedBy(user.id).subscribe({
       next: (products) => {
         this.loadedProductCount = products.length;
