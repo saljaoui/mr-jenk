@@ -23,10 +23,6 @@ interface MediaAsset {
   productId: string;
   productName: string;
   fileName: string;
-  extension: string;
-  contentType: string;
-  sizeBytes: number;
-  dataUrl: string;
   order: number;
 }
 

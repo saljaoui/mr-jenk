@@ -49,7 +49,7 @@
               <span class="gallery-badge featured">Best seller</span>
               <span class="gallery-badge stock">In stock</span>
             </div>
-            <img [src]="imageDataUrl(media)" alt="Product Image">
+            <img [src]="imageUrl(media)" alt="Product Image">
           </div>
           } @else {
           <div class="gallery-stage gallery-empty-state">
@@ -60,10 +60,10 @@
           }
 
           <div class="thumb-grid">
-            @for (mediaData of MediaDetails(); track mediaData.id) {
+            @for (mediaData of medias(); track mediaData.id) {
             <button [class]="(selectedImage()?.id==mediaData.id)? 'thumb-btn active':'thumb-btn'" type="button"
               (click)="selectImage(mediaData.id)">
-              <img [src]="imageDataUrl(mediaData)" alt="Product Image">
+              <img [src]="imageUrl(mediaData)" alt="Product Image">
             </button>
             }
           </div>

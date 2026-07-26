@@ -76,9 +76,6 @@
 }
 
 .upload-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
   margin-top: 1rem;
 }
 
@@ -236,6 +233,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
+  width: 100%;
+
 }
 
 .image-card {

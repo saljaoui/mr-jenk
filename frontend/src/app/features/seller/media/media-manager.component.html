@@ -220,15 +220,11 @@
               @for (asset of filteredAssets(); track asset.id) {
               <article class="media-card" [class.selected]="selectedAssetId() === asset.id">
                 <div class="media-preview">
-                  <img [src]="asset.dataUrl" [alt]="asset.fileName" loading="lazy" />
-                  <span class="file-badge">{{ asset.extension.toUpperCase() }}</span>
+                  <img [src]="mediaService.imageUrl(asset.media)" [alt]="asset.fileName" loading="lazy" />
+                  <span class="file-badge">{{ asset.fileName.split('.').pop()?.toUpperCase() || 'IMG' }}</span>
                 </div>
                 <strong>{{ asset.fileName }}</strong>
                 <span>{{ asset.productName }}</span>
-                <div class="file-tags">
-                  <span class="soft-pill">{{ formatBytes(asset.sizeBytes) }}</span>
-                  <span class="soft-pill">{{ asset.contentType }}</span>
-                </div>
                 <div class="media-actions">
                   <button class="row-btn" type="button" (click)="openAsset(asset)" title="View image"
                     aria-label="View image">
