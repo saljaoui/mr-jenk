@@ -2,35 +2,29 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo '✅ Code checked out'
-            }
-        }
-
-        // ---------- BUILD: discovery-service ----------
-        stage('Build: discovery-service') {
+        stage('Build discovery-service') {
             steps {
                 dir('infrastructure/discovery-service') {
-                    sh './mvnw spring-boot:run'
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean verify'
                 }
             }
         }
 
-        // ---------- BUILD: api-gateway ----------
-        stage('Build: api-gateway') {
+        stage('Build api-gateway') {
             steps {
                 dir('infrastructure/api-gateway') {
-                    sh './mvnw spring-boot:run'
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean verify'
                 }
             }
         }
 
-        // ---------- BUILD: user-service ----------
-        stage('Build: user-service') {
+        stage('Build user-service') {
             steps {
                 dir('services/user-service') {
-                    sh './mvnw spring-boot:run'
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean verify'
                 }
             }
         }
@@ -38,13 +32,15 @@ pipeline {
 
     post {
         always {
-            echo '🏁 Pipeline finished'
+            echo 'Pipeline finished'
         }
+
         success {
-            echo '✅ Build succeeded'
+            echo 'All services built successfully'
         }
+
         failure {
-            echo '❌ Build failed'
+            echo 'One or more services failed'
         }
     }
 }
