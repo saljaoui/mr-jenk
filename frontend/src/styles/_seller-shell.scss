@@ -64,7 +64,7 @@
   flex-shrink: 0;
 }
 
-.seller-brand-icon img{
+.seller-brand-icon img {
   width: 64px;
   height: 64px;
 }
@@ -447,7 +447,10 @@
   background: var(--card-bg);
   border: 1.5px solid var(--border);
   border-radius: 16px;
-  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  transition:
+    transform 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s;
 }
 
 .metric-card:hover {
@@ -562,7 +565,10 @@
   color: var(--ink);
   background: #faf8f4;
   outline: none;
-  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+    background 0.18s;
 }
 
 .field textarea {
@@ -718,7 +724,9 @@
   border-radius: 18px;
   padding: 1.5rem;
   background: linear-gradient(180deg, rgba(250, 248, 244, 0.9), rgba(255, 255, 255, 0.8));
-  transition: border-color 0.18s, background 0.18s;
+  transition:
+    border-color 0.18s,
+    background 0.18s;
 }
 
 .upload-dropzone:hover {

@@ -5,8 +5,7 @@
   padding: 2rem;
   background:
     radial-gradient(circle at 20% 20%, rgba(200, 169, 110, 0.16), transparent 22%),
-    radial-gradient(circle at 80% 80%, rgba(200, 169, 110, 0.12), transparent 24%),
-    var(--cream);
+    radial-gradient(circle at 80% 80%, rgba(200, 169, 110, 0.12), transparent 24%), var(--cream);
 }
 
 .not-found-card {

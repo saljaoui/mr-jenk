@@ -9,28 +9,30 @@ export type SellerNavItem = 'dashboard' | 'products' | 'create-product' | 'media
   selector: 'app-seller-nav',
   imports: [RouterLink],
   templateUrl: './seller-nav.component.html',
-  styles: [`
-    .seller-nav-logout {
-      width: 100%;
-      border: 0;
-      border-left: 2px solid transparent;
-      background: transparent;
-      text-align: left;
-      font: inherit;
-      cursor: pointer;
-    }
+  styles: [
+    `
+      .seller-nav-logout {
+        width: 100%;
+        border: 0;
+        border-left: 2px solid transparent;
+        background: transparent;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+      }
 
-    .seller-nav-logout:focus-visible {
-      outline: 2px solid var(--gold);
-      outline-offset: -2px;
-    }
+      .seller-nav-logout:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: -2px;
+      }
 
-    .seller-nav-logout svg {
-      width: 18px;
-      height: 18px;
-      flex: 0 0 auto;
-    }
-  `],
+      .seller-nav-logout svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+      }
+    `,
+  ],
 })
 export class SellerNavComponent implements OnInit {
   private readonly authService = inject(AuthService);

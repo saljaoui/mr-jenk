@@ -44,9 +44,7 @@ export class ProductService {
   }
 
   getProductsOwnedBy(userId: string): Observable<ProductResponse[]> {
-    return this.getProducts(0, 100).pipe(
-      map((page) => page.content.filter((p) => p.owner)),
-    );
+    return this.getProducts(0, 100).pipe(map((page) => page.content.filter((p) => p.owner)));
   }
 
   publishProduct(product: ProductRequest): Observable<ProductResponse> {

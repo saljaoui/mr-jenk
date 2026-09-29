@@ -8,10 +8,9 @@ import { ToastService, ToastType } from '../../shared/services/toast-service';
   standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './toast.html',
-  styleUrls: ['./toast.scss']
+  styleUrls: ['./toast.scss'],
 })
 export class ToastComponent {
-
   toastService = inject(ToastService);
 
   protected iconFor(type: ToastType): AppIconName {

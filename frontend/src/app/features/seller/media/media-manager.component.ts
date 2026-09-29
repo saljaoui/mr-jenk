@@ -61,8 +61,8 @@ export class MediaManagerComponent implements OnInit {
 
   userInitials = computed(() => this.getInitials(this.user()?.name ?? ''));
   totalProducts = computed(() => this.products().length);
-  selectedProduct = computed(() =>
-    this.products().find((product) => product.id === this.uploadProductId()) ?? null,
+  selectedProduct = computed(
+    () => this.products().find((product) => product.id === this.uploadProductId()) ?? null,
   );
   filteredAssets = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -162,13 +162,15 @@ export class MediaManagerComponent implements OnInit {
     this.errorMessage.set(null);
     forkJoin(
       products.map((product, productIndex) =>
-        this.mediaService.getMediaByProduct(product.id).pipe(
-          map((mediaList) =>
-            mediaList.map((media, mediaIndex) =>
-              this.toMediaAsset(media, product, productIndex, mediaIndex),
+        this.mediaService
+          .getMediaByProduct(product.id)
+          .pipe(
+            map((mediaList) =>
+              mediaList.map((media, mediaIndex) =>
+                this.toMediaAsset(media, product, productIndex, mediaIndex),
+              ),
             ),
           ),
-        ),
       ),
     ).subscribe({
       next: (mediaGroups) => {
@@ -332,7 +334,9 @@ export class MediaManagerComponent implements OnInit {
           }
         },
         error: (error: HttpErrorResponse) => {
-          this.toastService.error(this.api.getErrorMessage(error, 'Product media could not be deleted.'));
+          this.toastService.error(
+            this.api.getErrorMessage(error, 'Product media could not be deleted.'),
+          );
           this.isClearingProductMedia.set(false);
         },
       });
@@ -353,7 +357,12 @@ export class MediaManagerComponent implements OnInit {
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   }
 
-  private toMediaAsset(media: Media, product: ProductResponse, productIndex: number, mediaIndex: number): MediaAsset {
+  private toMediaAsset(
+    media: Media,
+    product: ProductResponse,
+    productIndex: number,
+    mediaIndex: number,
+  ): MediaAsset {
     const assetNumber = mediaIndex + 1;
     return {
       id: media.id,

@@ -61,12 +61,20 @@ export class SellerProductListComponent implements OnInit {
         this.toastService.success('Product deleted successfully.');
         this.products.update((products) => products.filter((item) => item.id !== product.id));
       },
-      error: (err) => this.toastService.error(this.api.getErrorMessage(err, 'Product could not be deleted.')),
+      error: (err) =>
+        this.toastService.error(this.api.getErrorMessage(err, 'Product could not be deleted.')),
     });
   }
 
   private getInitials(name: string): string {
-    return name.trim().split(/\s+/).filter(Boolean).slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? '').join('') || 'U';
+    return (
+      name
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('') || 'U'
+    );
   }
 }

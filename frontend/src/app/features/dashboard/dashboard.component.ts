@@ -42,12 +42,10 @@ export class DashboardComponent implements OnInit {
   mediaTotal = computed(() =>
     Object.values(this.mediaCounts()).reduce((total, count) => total + count, 0),
   );
-  productsWithMedia = computed(() =>
-    this.products().filter((product) => this.mediaCountFor(product.id) > 0).length,
+  productsWithMedia = computed(
+    () => this.products().filter((product) => this.mediaCountFor(product.id) > 0).length,
   );
-  draftTasks = computed(() =>
-    this.products().filter((product) => this.needsWork(product)).length,
-  );
+  draftTasks = computed(() => this.products().filter((product) => this.needsWork(product)).length);
   recentProducts = computed(() => this.products().slice(0, 5));
   userInitials = computed(() => this.getInitials(this.user()?.name ?? ''));
 

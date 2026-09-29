@@ -3,13 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable, of, switchMap, throwError } from 'rxjs';
 
 import { ApiClient } from '../../core/api/api-client.service';
-import {
-  AuthResponse,
-  AuthSession,
-  AuthUser,
-  LoginRequest,
-  RegisterRequest,
-} from './auth.models';
+import { AuthResponse, AuthSession, AuthUser, LoginRequest, RegisterRequest } from './auth.models';
 
 const AUTH_TOKEN_KEY = 'buy01.auth.token';
 const AUTH_USER_KEY = 'buy01.auth.user';
@@ -59,8 +53,7 @@ export class AuthService {
   }
 
   getStoredUser(): AuthUser | null {
-    const storedUser =
-      localStorage.getItem(AUTH_USER_KEY) ?? sessionStorage.getItem(AUTH_USER_KEY);
+    const storedUser = localStorage.getItem(AUTH_USER_KEY) ?? sessionStorage.getItem(AUTH_USER_KEY);
 
     if (!storedUser) {
       return null;
@@ -93,7 +86,9 @@ export class AuthService {
 
   private toSession(response: AuthResponse): Observable<AuthSession> {
     if (!response.token) {
-      return throwError(() => new Error('Authentication response did not include an access token.'));
+      return throwError(
+        () => new Error('Authentication response did not include an access token.'),
+      );
     }
 
     if (response.user) {

@@ -11,7 +11,9 @@ export interface ApiError {
 
 type HttpOptions = {
   headers?: HttpHeaders | Record<string, string | string[]>;
-  params?: HttpParams | Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
+  params?:
+    | HttpParams
+    | Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
 };
 
 type RuntimeConfig = {

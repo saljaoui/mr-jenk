@@ -405,7 +405,7 @@
   margin-top: 1rem;
 }
 
-.action-row>* {
+.action-row > * {
   flex: 1;
 }
 
@@ -614,7 +614,6 @@
 }
 
 @media (max-width: 1199px) {
-
   .detail-layout,
   .detail-bottom-grid,
   .related-grid {

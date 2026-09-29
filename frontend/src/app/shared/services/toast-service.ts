@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 
-
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export interface Toast {
@@ -16,18 +15,14 @@ export interface Toast {
 export class ToastService {
   private counter = 0;
   toasts = signal<Toast[]>([]);
-  show(
-    message: string,
-    type: ToastType = 'info',
-    duration = 3000
-  ) {
+  show(message: string, type: ToastType = 'info', duration = 3000) {
     const toast: Toast = {
       id: ++this.counter,
       message,
       type,
-      duration
+      duration,
     };
-    this.toasts.update(current => [...current, toast]);
+    this.toasts.update((current) => [...current, toast]);
     if (duration > 0) {
       setTimeout(() => {
         this.remove(toast.id);
@@ -52,8 +47,6 @@ export class ToastService {
   }
 
   remove(id: number) {
-    this.toasts.update(current =>
-      current.filter(t => t.id !== id)
-    );
+    this.toasts.update((current) => current.filter((t) => t.id !== id));
   }
 }

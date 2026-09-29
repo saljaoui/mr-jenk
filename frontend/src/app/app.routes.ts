@@ -56,13 +56,15 @@ export const routes: Routes = [
   {
     path: 'products',
     loadComponent: () =>
-      import('./features/products/product-list/product-list.component').then((m) => m.ProductListComponent),
+      import('./features/products/product-list/product-list.component').then(
+        (m) => m.ProductListComponent,
+      ),
   },
   {
     path: 'products/:id',
     loadComponent: () =>
       import('./features/products/product-details/product-details.component').then(
-        (m) => m.ProductDetailsComponent
+        (m) => m.ProductDetailsComponent,
       ),
   },
   {
@@ -74,43 +76,41 @@ export const routes: Routes = [
         path: '',
         pathMatch: 'full',
         loadComponent: () =>
-          import('./features/dashboard/dashboard.component').then(
-            (m) => m.DashboardComponent
-          ),
+          import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'products',
         loadComponent: () =>
           import('./features/seller/products/product-list/seller-product-list.component').then(
-            (m) => m.SellerProductListComponent
+            (m) => m.SellerProductListComponent,
           ),
       },
       {
         path: 'products/new',
         loadComponent: () =>
           import('./features/seller/products/product-form/product-form.component').then(
-            (m) => m.ProductFormComponent
+            (m) => m.ProductFormComponent,
           ),
       },
       {
         path: 'products/:id/edit',
         loadComponent: () =>
           import('./features/seller/products/product-form/product-form.component').then(
-            (m) => m.ProductFormComponent
+            (m) => m.ProductFormComponent,
           ),
       },
       {
         path: 'media',
         loadComponent: () =>
           import('./features/seller/media/media-manager.component').then(
-            (m) => m.MediaManagerComponent
+            (m) => m.MediaManagerComponent,
           ),
       },
       {
         path: 'profile',
         loadComponent: () =>
           import('./features/seller/profile/seller-profile.component').then(
-            (m) => m.SellerProfileComponent
+            (m) => m.SellerProfileComponent,
           ),
       },
     ],

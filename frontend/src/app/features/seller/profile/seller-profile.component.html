@@ -14,20 +14,18 @@
       </div>
 
       <div class="seller-topbar-actions">
-        <button
-          class="primary-btn"
-          type="button"
-          (click)="saveChanges()"
-          [disabled]="isSaving()"
-        >
-          <app-icon [name]="isSaving() ? 'spinner' : 'check'" [class.spin]="isSaving()" [size]="16"></app-icon>
+        <button class="primary-btn" type="button" (click)="saveChanges()" [disabled]="isSaving()">
+          <app-icon
+            [name]="isSaving() ? 'spinner' : 'check'"
+            [class.spin]="isSaving()"
+            [size]="16"
+          ></app-icon>
           {{ isSaving() ? 'Saving...' : 'Save changes' }}
         </button>
       </div>
     </header>
 
     <main class="seller-body">
-
       <div *ngIf="isLoading()" class="panel">
         <div class="panel-body">
           <app-icon class="spin" name="spinner" [size]="20"></app-icon>
@@ -36,15 +34,27 @@
       </div>
 
       <ng-container *ngIf="!isLoading()">
-
-        <div *ngIf="errorMessage()" class="panel" style="background: #fff0f0; border: 1px solid #e8b4b4; color: #c44;">
+        <div
+          *ngIf="errorMessage()"
+          class="panel"
+          style="background: #fff0f0; border: 1px solid #e8b4b4; color: #c44"
+        >
           <div class="panel-body">
-            <app-icon name="alert" [size]="20" [decorative]="false" ariaLabel="Profile error"></app-icon>
+            <app-icon
+              name="alert"
+              [size]="20"
+              [decorative]="false"
+              ariaLabel="Profile error"
+            ></app-icon>
             {{ errorMessage() }}
           </div>
         </div>
 
-        <div *ngIf="successMessage()" class="panel" style="background: #f0fff4; border: 1px solid #b4e8c4; color: #2a6;">
+        <div
+          *ngIf="successMessage()"
+          class="panel"
+          style="background: #f0fff4; border: 1px solid #b4e8c4; color: #2a6"
+        >
           <div class="panel-body">
             <app-icon name="circle-check" [size]="20"></app-icon>
             {{ successMessage() }}
@@ -105,12 +115,7 @@
 
                   <div class="field">
                     <label for="role">Account role</label>
-                    <input
-                      id="role"
-                      type="text"
-                      [value]="displayRole()"
-                      readonly
-                    />
+                    <input id="role" type="text" [value]="displayRole()" readonly />
                   </div>
                 </div>
               </div>
@@ -142,7 +147,6 @@
             </div>
           </aside>
         </div>
-
       </ng-container>
     </main>
   </div>

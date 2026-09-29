@@ -14,7 +14,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({
         anchorScrolling: 'enabled',
         scrollPositionRestoration: 'enabled',
-      })
-    )
-  ]
+      }),
+    ),
+  ],
 };
