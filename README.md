@@ -137,6 +137,18 @@ Start the full stack with one command:
 docker compose up --build
 ```
 
+For a single-host deployment, apply the production overrides for restart policies and bounded
+container logs:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.production.yml up -d --build
+```
+
+Published frontend, gateway, and Kafka ports bind to `127.0.0.1` by default. Put a TLS reverse
+proxy on the host in front of the frontend and gateway. Set `HOST_BIND_IP` only when you
+intentionally need a different host binding. The image references use digests; update those
+digests deliberately as part of routine image security updates.
+
 ## Why This Project Is Good For A CV
 
 - It shows real microservice boundaries instead of a single monolith.

@@ -1,6 +1,23 @@
-FROM nginx:1.29-alpine
+FROM node:20-alpine AS builder
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY dist/s/browser /usr/share/nginx/html
+WORKDIR /app
 
-EXPOSE 80
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
+
+FROM nginx:1.29-alpine AS runner
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder --chown=nginx:nginx /app/dist/s/browser /usr/share/nginx/html
+
+USER nginx
+
+EXPOSE 8080
+
+ENTRYPOINT ["nginx"]
+
+CMD ["-g", "daemon off;"]

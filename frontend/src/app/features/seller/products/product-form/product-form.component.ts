@@ -1,8 +1,20 @@
-import { ChangeDetectorRef, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  computed,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { ProductRequest, ProductResponse, ProductService } from '../../../../shared/services/product-service';
+import {
+  ProductRequest,
+  ProductResponse,
+  ProductService,
+} from '../../../../shared/services/product-service';
 import { Media, MediaService, ProductImage } from '../../../../shared/services/media-service';
 import { ToastService } from '../../../../shared/services/toast-service';
 import { ApiClient } from '../../../../core/api/api-client.service';
@@ -135,13 +147,15 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   }
 
   deleteImage(image: ProductImage): void {
+    console.log('deleted images called');
     if (image.isNew) {
       URL.revokeObjectURL(image.preview);
       this.selectedImages = this.selectedImages.filter((item) => item !== image);
       return;
     }
-    image.deleted = true;
-    this.selectedImages = this.selectedImages.filter((item) => item !== image);
+    this.selectedImages = this.selectedImages.map((item) =>
+      item.id == image.id ? { ...image, deleted: true } : item,
+    );
   }
 
   private isValidImage(file: File): boolean {
@@ -207,7 +221,9 @@ export class ProductFormComponent implements OnInit, OnDestroy {
           if (uploaded === files.length) this.finishSave(successMessage);
         },
         error: (err) => {
-          this.rejectSave(this.api.getErrorMessage(err, 'Product created but image upload failed.'));
+          this.rejectSave(
+            this.api.getErrorMessage(err, 'Product created but image upload failed.'),
+          );
         },
       });
     });
@@ -216,6 +232,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private syncImagesFor(productId: string, successMessage: string): void {
     const newFiles = this.activeImageFiles();
     const deletedImages = this.selectedImages.filter((image) => image.deleted);
+    console.log(deletedImages);
     deletedImages.forEach((image) => {
       this.mediaService.deleteMedia(image.id).subscribe();
     });

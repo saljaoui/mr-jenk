@@ -1,8 +1,10 @@
 package com.buy01.users.service;
 
 import com.buy01.users.dto.UpdateUserRequest;
+import com.buy01.users.dto.SellerPublicResponse;
 import com.buy01.users.dto.UserResponse;
 import com.buy01.users.exception.UserNotFoundException;
+import com.buy01.users.model.Role;
 import com.buy01.users.model.User;
 import com.buy01.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,18 @@ public class UserService {
 
     public UserResponse getCurrentUser(String userId) {
         return toUserResponse(getUserById(userId));
+    }
+
+    public SellerPublicResponse getSellerProfile(String userId) {
+        User user = getUserById(userId);
+        if (user.getRole() != Role.SELLER) {
+            throw new UserNotFoundException("Seller not found");
+        }
+        return SellerPublicResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .avatar(user.getAvatar())
+                .build();
     }
 
     public UserResponse updateCurrentUser(String userId, UpdateUserRequest request) {

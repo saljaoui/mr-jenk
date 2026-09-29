@@ -1,12 +1,14 @@
 package com.buy01.users.controller;
 
 import com.buy01.users.dto.UpdateUserRequest;
+import com.buy01.users.dto.SellerPublicResponse;
 import com.buy01.users.dto.UserResponse;
 import com.buy01.users.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +26,11 @@ public class UserController {
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
         String userId = authentication.getName();
         return ResponseEntity.ok(userService.getCurrentUser(userId));
+    }
+
+    @GetMapping("/{userId}/seller-profile")
+    public ResponseEntity<SellerPublicResponse> getSellerProfile(@PathVariable String userId) {
+        return ResponseEntity.ok(userService.getSellerProfile(userId));
     }
 
     @PutMapping("/me")

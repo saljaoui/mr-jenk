@@ -178,21 +178,28 @@
 
         <div class="surface-card seller-card">
           <div class="seller-head">
-            <div class="seller-avatar">S</div>
-            <div>
-              <strong>SoundWave Studio</strong>
-              <span>Audio equipment specialist</span>
+            <div class="seller-avatar">
+              @if (seller()?.avatar; as avatar) {
+                <img [src]="avatar" [alt]="seller()?.name || 'Seller'" />
+              } @else {
+                {{ sellerInitials() }}
+              }
             </div>
-            <div class="seller-verified">Verified</div>
+            <div>
+              <strong>{{ seller()?.name || 'Seller details unavailable' }}</strong>
+              <span>Buy01 seller</span>
+            </div>
+            @if (seller()) {
+              <div class="seller-verified">Seller</div>
+            }
           </div>
 
           <p>
-            Discover quality products at great prices. Shop with confidence and enjoy a simple, secure, and reliable
-            shopping experience.
+            This product is listed by {{ seller()?.name || 'a Buy01 seller' }}.
           </p>
 
           <div class="seller-actions">
-            <button class="ghost-btn" type="button">
+            <a class="ghost-btn" routerLink="/products">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
                 <g fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" d="M21 22H3m16 0v-7M5 22v-7" />
@@ -200,8 +207,8 @@
                     d="M16.528 2H7.472c-1.203 0-1.804 0-2.287.299c-.484.298-.753.836-1.29 1.912L2.49 7.76c-.324.82-.608 1.786-.062 2.479A2 2 0 0 0 6 9a2 2 0 1 0 4 0a2 2 0 1 0 4 0a2 2 0 1 0 4 0a2 2 0 0 0 3.571 1.238c.546-.693.262-1.659-.062-2.479l-1.404-3.548c-.537-1.076-.806-1.614-1.29-1.912C18.332 2 17.731 2 16.528 2Z" />
                 </g>
               </svg>
-              View store
-            </button>
+              Browse products
+            </a>
           </div>
         </div>
       </section>

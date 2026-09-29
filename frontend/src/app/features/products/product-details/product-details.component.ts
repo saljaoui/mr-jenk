@@ -12,17 +12,11 @@ import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-product-details',
-  imports: [
-    FooterComponent,
-    NavbarComponent,
-    RouterLink,
-    IconComponent
-  ],
+  imports: [FooterComponent, NavbarComponent, RouterLink, IconComponent],
   templateUrl: './product-details.html',
   styleUrl: './product-details.scss',
 })
 export class ProductDetailsComponent implements OnInit {
-
   productDetailsSignal = signal<ProductResponse | undefined>(undefined);
   productDetails = computed(() => this.productDetailsSignal());
 
@@ -31,6 +25,9 @@ export class ProductDetailsComponent implements OnInit {
 
   selectedImageSignal = signal<Media | undefined>(undefined);
   selectedImage = computed(() => this.selectedImageSignal());
+
+  seller = computed(() => this.productDetails()?.seller ?? null);
+  sellerInitials = computed(() => this.getInitials(this.seller()?.name ?? 'Seller'));
 
   isLoading = signal(true);
   isMediaLoading = signal(true);
@@ -50,7 +47,7 @@ export class ProductDetailsComponent implements OnInit {
   private readonly api = inject(ApiClient);
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
 
       if (!id) {
@@ -74,22 +71,19 @@ export class ProductDetailsComponent implements OnInit {
     this.productService.getProduct(productId).subscribe({
       next: (product: ProductResponse) => {
         this.productDetailsSignal.set(product);
+        console.log(product);
         this.isLoading.set(false);
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
 
         if (err.status === 404) {
-          this.toastService.error(
-            'The product you are looking for does not exist.'
-          );
+          this.toastService.error('The product you are looking for does not exist.');
           this.router.navigate(['/not-found']);
         } else {
-          this.errorMessage.set(
-            this.api.getErrorMessage(err, 'Unable to load product.')
-          );
+          this.errorMessage.set(this.api.getErrorMessage(err, 'Unable to load product.'));
         }
-      }
+      },
     });
   }
 
@@ -108,19 +102,16 @@ export class ProductDetailsComponent implements OnInit {
         this.isMediaLoading.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.mediaErrorMessage.set(
-          this.api.getErrorMessage(err, 'Unable to load product images.')
-        );
+        this.mediaErrorMessage.set(this.api.getErrorMessage(err, 'Unable to load product images.'));
 
         this.mediaSignal.set([]);
         this.isMediaLoading.set(false);
-      }
+      },
     });
   }
 
   selectImage(mediaId: string): void {
-    const image = this.medias()
-      .find(media => media.id === mediaId);
+    const image = this.medias().find((media) => media.id === mediaId);
 
     this.selectedImageSignal.set(image);
   }
@@ -129,12 +120,20 @@ export class ProductDetailsComponent implements OnInit {
     return `${environment.apiBaseUrl}${media.imageUrl}`;
   }
 
+  private getInitials(name: string): string {
+    return (
+      name
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('') || 'S'
+    );
+  }
+
   updateProduct(): void {
-    this.router.navigate([
-      '/seller/products',
-      this.productId,
-      'edit'
-    ]);
+    this.router.navigate(['/seller/products', this.productId, 'edit']);
   }
 
   delete(): void {
@@ -149,13 +148,11 @@ export class ProductDetailsComponent implements OnInit {
         this.toastService.success('Product deleted successfully.');
         this.router.navigate(['/products']);
       },
-      error: err => {
-        this.toastService.error(
-          this.api.getErrorMessage(err, 'Product could not be deleted.')
-        );
+      error: (err) => {
+        this.toastService.error(this.api.getErrorMessage(err, 'Product could not be deleted.'));
 
         this.isDeleting.set(false);
-      }
+      },
     });
   }
 }

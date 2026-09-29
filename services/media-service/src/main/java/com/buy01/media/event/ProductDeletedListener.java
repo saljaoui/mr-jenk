@@ -3,7 +3,6 @@ package com.buy01.media.event;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.buy01.events.product.ProductDeletedEvent;
 import com.buy01.media.repository.MediaRepository;
 
 @Component
@@ -13,6 +12,9 @@ public class ProductDeletedListener {
 
     public ProductDeletedListener(MediaRepository mediaRepository) {
         this.mediaRepository = mediaRepository;
+    }
+    
+    public record ProductDeletedEvent(String productId) {
     }
 
     @KafkaListener(topics = "product-deleted", groupId = "media-service")

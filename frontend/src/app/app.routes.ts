@@ -72,9 +72,17 @@ export const routes: Routes = [
     children: [
       {
         path: '',
+        pathMatch: 'full',
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
+          ),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/seller/products/product-list/seller-product-list.component').then(
+            (m) => m.SellerProductListComponent
           ),
       },
       {

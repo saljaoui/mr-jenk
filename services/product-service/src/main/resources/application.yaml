@@ -8,7 +8,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.add.type.headers: true
+        spring.json.add.type.headers: false
         acks: all
         enable.idempotence: true
         retries: 10
@@ -21,6 +21,10 @@ spring:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/buy01_products}
       auto-index-creation: true
+
+buy01:
+  user-service:
+    url: ${USER_SERVICE_URL:http://localhost:8082}
 
 jwt:
   secret: ${JWT_SECRET:4fd8a6c3b92f4a8c9c6b8a1f2e3d4c5f6a7b8c9d}

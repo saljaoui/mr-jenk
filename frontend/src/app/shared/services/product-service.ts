@@ -15,12 +15,19 @@ export interface ProductRequest {
   quantity: number;
 }
 
+export interface SellerPublicProfile {
+  id: string;
+  name: string;
+  avatar: string | null;
+}
+
 export interface ProductResponse {
   id: string;
   name: string;
   description: string;
   price: number;
   quantity: number;
+  seller: SellerPublicProfile | null;
   owner: boolean;
 }
 

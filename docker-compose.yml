@@ -1,124 +1,222 @@
 services:
-  mongodb:
-    image: mongo:7.0
-    restart: unless-stopped
+  mongo:
+    image: ${MONGO_IMAGE:-mongo:8}
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
     volumes:
-      - mongodb_data:/data/db
+      - mongo_data:/data/db
     networks:
-      - buy01-network
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    restart: unless-stopped
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - buy01-network
-
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    restart: unless-stopped
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    networks:
-      - buy01-network
-  discovery-service:
-    build:
-      context: ./infrastructure/discovery-service
-    restart: unless-stopped
-    environment:
-      SERVER_PORT: 8761
-      EUREKA_HOSTNAME: discovery-service
-    networks:
-      - buy01-network
+      - app-net
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+
+  kafka:
+    image: ${KAFKA_IMAGE:-confluentinc/cp-kafka:7.6.0}
+    environment:
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR}
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - app-net
+    ports:
+      - "${HOST_BIND_IP:-127.0.0.1}:${KAFKA_HOST_PORT}:${KAFKA_INTERNAL_PORT}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:${KAFKA_INTERNAL_PORT}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  discovery:
+    build:
+      context: ./infrastructure/discovery-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: ${DISCOVERY_SERVER_PORT}
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - app-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:${DISCOVERY_SERVER_PORT}/actuator/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   api-gateway:
     build:
       context: ./infrastructure/api-gateway
-    restart: unless-stopped
+      dockerfile: Dockerfile
+    depends_on:
+      user-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      media-service:
+        condition: service_healthy
     environment:
-      SERVER_PORT: 8080
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
-      JWT_SECRET: ${JWT_SECRET:-4fd8a6c3b92f4a8c9c6b8a1f2e3d4c5f6a7b8c9d}
+      SERVER_PORT: ${API_GATEWAY_SERVER_PORT}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:${DISCOVERY_SERVER_PORT}/eureka/
+      SPRING_PROFILES_ACTIVE: docker
     ports:
-      - "${GATEWAY_PORT:-8080}:8080"
-    depends_on:
-      - discovery-service
+      - "${HOST_BIND_IP:-127.0.0.1}:${API_GATEWAY_SERVER_PORT}:${API_GATEWAY_SERVER_PORT}"
     networks:
-      - buy01-network
+      - app-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:${API_GATEWAY_SERVER_PORT}/actuator/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
-  user-service:
-    build:
-      context: ./services/user-service
-    restart: unless-stopped
-    environment:
-      SERVER_PORT: 8081
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
-      MONGODB_URI: mongodb://mongodb:27017/buy01_users
-      JWT_SECRET: ${JWT_SECRET:-4fd8a6c3b92f4a8c9c6b8a1f2e3d4c5f6a7b8c9d}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
-    depends_on:
-      - discovery-service
-      - mongodb
-    networks:
-      - buy01-network
-
+  # ---------- Product Service ----------
   product-service:
     build:
       context: ./services/product-service
-    restart: unless-stopped
-    environment:
-      SERVER_PORT: 8082
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
-      MONGODB_URI: mongodb://mongodb:27017/buy01_products
-      JWT_SECRET: ${JWT_SECRET:-4fd8a6c3b92f4a8c9c6b8a1f2e3d4c5f6a7b8c9d}
+      dockerfile: Dockerfile
     depends_on:
-      - discovery-service
-      - mongodb
+      discovery:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: ${PRODUCT_SERVER_PORT}
+      USER_SERVICE_URL: http://user-service:${USER_SERVER_PORT}
+      MONGODB_URI: ${PRODUCT_MONGODB_URI}
+      EUREKA_DEFAULT_ZONE: ${PRODUCT_EUREKA_DEFAULT_ZONE}
+      JWT_SECRET: ${PRODUCT_JWT_SECRET}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${PRODUCT_SPRING_KAFKA_BOOTSTRAP_SERVERS}
+      SPRING_PROFILES_ACTIVE: docker
     networks:
-      - buy01-network
+      - app-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:${PRODUCT_SERVER_PORT}/actuator/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
+  # ---------- User Service ----------
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    depends_on:
+      discovery:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: ${USER_SERVER_PORT}
+      MONGODB_URI: ${USER_MONGODB_URI}
+      EUREKA_DEFAULT_ZONE: ${USER_EUREKA_DEFAULT_ZONE}
+      JWT_SECRET: ${USER_JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - app-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:${USER_SERVER_PORT}/actuator/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # ---------- Media Service ----------
   media-service:
     build:
       context: ./services/media-service
-    restart: unless-stopped
-    environment:
-      SERVER_PORT: 8083
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka/
-      MONGODB_URI: mongodb://mongodb:27017/buy01_media
-      JWT_SECRET: ${JWT_SECRET:-4fd8a6c3b92f4a8c9c6b8a1f2e3d4c5f6a7b8c9d}
+      dockerfile: Dockerfile
     depends_on:
-      - discovery-service
-      - mongodb
+      discovery:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: ${MEDIA_SERVER_PORT}
+      MONGODB_URI: ${MEDIA_MONGODB_URI}
+      EUREKA_DEFAULT_ZONE: ${MEDIA_EUREKA_DEFAULT_ZONE}
+      JWT_SECRET: ${MEDIA_JWT_SECRET}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${MEDIA_SPRING_KAFKA_BOOTSTRAP_SERVERS}
+      SPRING_PROFILES_ACTIVE: docker
     networks:
-      - buy01-network
+      - app-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:${MEDIA_SERVER_PORT}/actuator/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
+  # ---------- Frontend (Angular) ----------
   frontend:
     build:
       context: ./frontend
-    restart: unless-stopped
-    ports:
-      - "${FRONTEND_PORT:-4200}:80"
+      dockerfile: Dockerfile
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "${HOST_BIND_IP:-127.0.0.1}:${FRONTEND_HOST_PORT}:8080"
     networks:
-      - buy01-network
-
-volumes:
-  mongodb_data:
+      - app-net
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
-  buy01-network:
-    driver: bridge
+  app-net:
+
+volumes:
+  mongo_data:
+  kafka_data:

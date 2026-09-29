@@ -1,0 +1,61 @@
+<div class="seller-shell">
+  <app-seller-sidebar activeItem="products" [productCount]="products().length" [initials]="initials()"
+    [name]="user()?.name || 'Seller'" [subtitle]="user()?.email || 'Seller account'"></app-seller-sidebar>
+
+  <div class="seller-main">
+    <header class="seller-topbar">
+      <div class="seller-topbar-copy">
+        <strong>Products</strong>
+        <span>Manage your seller catalog</span>
+      </div>
+      <div class="seller-topbar-actions">
+        <a class="primary-btn" routerLink="/seller/products/new">New product</a>
+      </div>
+    </header>
+
+    <main class="seller-body seller-products-body">
+      <section class="seller-banner">
+        <div class="seller-banner-copy">
+          <div class="eyebrow"><span></span> Catalog</div>
+          <h1>Your <em>products</em></h1>
+          <p>Review and update the products listed in your seller catalog.</p>
+        </div>
+      </section>
+
+      @if (isLoading()) {
+        <section class="panel"><div class="panel-body">Loading your products...</div></section>
+      } @else if (errorMessage()) {
+        <section class="panel seller-product-error"><div class="panel-body">{{ errorMessage() }}</div></section>
+      } @else if (products().length === 0) {
+        <section class="panel"><div class="panel-body seller-products-empty">
+          <strong>No products yet</strong>
+          <span>Create your first product to start building your catalog.</span>
+          <a class="primary-btn" routerLink="/seller/products/new">Create product</a>
+        </div></section>
+      } @else {
+        <section class="panel">
+          <div class="panel-head"><div><h3>All products</h3><p>{{ products().length }} listing{{ products().length === 1 ? '' : 's' }}</p></div></div>
+          <div class="table-shell">
+            <table class="data-table">
+              <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                @for (product of products(); track product.id) {
+                  <tr>
+                    <td><div class="seller-product-name"><strong>{{ product.name }}</strong><span>{{ product.description }}</span></div></td>
+                    <td><strong>${{ product.price }}</strong></td>
+                    <td>{{ product.quantity }}</td>
+                    <td><span class="seller-product-status" [class.out-of-stock]="product.quantity === 0">{{ product.quantity > 0 ? 'In stock' : 'Out of stock' }}</span></td>
+                    <td><div class="seller-product-actions">
+                      <a class="ghost-btn" [routerLink]="['/seller/products', product.id, 'edit']">Edit</a>
+                      <button class="ghost-btn seller-delete-btn" type="button" (click)="deleteProduct(product)">Delete</button>
+                    </div></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+    </main>
+  </div>
+</div>

@@ -21,6 +21,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductEventPublisher eventPublisher;
+    private final SellerProfileClient sellerProfileClient;
 
     public Page<ProductResponse> findAll(String userId, Pageable pageable) {
         return productRepository.findAll(pageable)
@@ -30,7 +31,9 @@ public class ProductService {
     public ProductResponse findById(String productId, String userId) {
         Product product = getProductOrThrow(productId);
         System.out.println("\nuserId: " + userId + ", product.getUserId(): " + product.getUserId() + "\n");
-        return toResponse(product, userId);
+        ProductResponse response = toResponse(product, userId);
+        response.setSeller(sellerProfileClient.getSellerProfile(product.getUserId()));
+        return response;
     }
 
     public Page<ProductResponse> findByUserId(String userId, Pageable pageable) {
@@ -59,6 +62,7 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setQuantity(request.getQuantity());
+        
 
         Product saved = productRepository.save(product);
         return toResponse(saved, userId);
@@ -74,10 +78,9 @@ public class ProductService {
     // ---- helpers ----
 
     private Product getProductOrThrow(String productId) {
-        Product product = productRepository.findById(productId)
+        return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
 
-        return product;
     }
 
     private void checkOwnership(Product product, String userId) {

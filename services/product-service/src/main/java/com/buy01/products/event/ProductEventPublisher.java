@@ -3,7 +3,6 @@ package com.buy01.products.event;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import com.buy01.events.product.ProductDeletedEvent;
 
 @Service
 public class ProductEventPublisher {
@@ -12,6 +11,9 @@ public class ProductEventPublisher {
 
     public ProductEventPublisher(KafkaTemplate<String, ProductDeletedEvent> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public record ProductDeletedEvent(String productId) {
     }
 
     public void publishProductDeleted(String productId) {

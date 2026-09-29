@@ -10,10 +10,10 @@
       </div>
 
       <div class="seller-topbar-actions">
-        <a class="ghost-btn" routerLink="/products">
+        <!-- <a class="ghost-btn" routerLink="/products">
           <app-icon name="eye" [size]="16"></app-icon>
           Preview
-        </a>
+        </a> -->
         <a class="secondary-btn" routerLink="/seller">
           <app-icon name="x" [size]="16"></app-icon>
           Cancel
@@ -149,7 +149,7 @@
 
               <div class="upload-preview-grid">
                 <div class="image-grid" role="list" aria-label="Selected images">
-                  @for (item of selectedImages; track item.preview) {
+                  @for (item of selectedImages.filter((i) => !i.deleted); track item.preview) {
                   <article class="image-card" role="listitem">
                     <div class="preview-art">
                       <img [src]="item.preview" alt="" loading="lazy" />
